@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anna Iarinovskaia — Digital Product Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Marcellus&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/scroll-story.css">
+</head>
+<body>
+
+<header class="intro">
+  <p class="intro__name">Anna Iarinovskaia</p>
+  <p class="intro__role">Digital Product Designer</p>
+</header>
+
+<nav class="side-nav" aria-label="Primary">
+  <a href="#about" class="side-tab side-tab--about" data-view="about" id="about-tab">
+    <span class="side-tab__text">About</span>
+    <span class="side-tab__arrow" aria-hidden="true"></span>
+  </a>
+</nav>
+
+<div class="story-pin" id="story-pin">
+<main class="hero">
+  <div class="hero__bg" aria-hidden="true"></div>
+  <img class="hero__photo" id="hero-photo" src="assets/case-1-renovation-configurator.png" alt="" aria-hidden="true">
+  <div class="hero__vignette" aria-hidden="true"></div>
+  <img class="hero__screen" id="hero-screen" alt="" aria-hidden="true">
+
+  <section class="case-card" id="case-card">
+    <div class="case-nav" role="tablist" aria-label="Case studies">
+      <span class="case-nav__label">Case study</span>
+      <div class="case-nav__list">
+        <button class="case-tab is-active" data-case="1" role="tab" aria-selected="true">01</button>
+        <button class="case-tab" data-case="2" role="tab" aria-selected="false">02</button>
+        <button class="case-tab" data-case="3" role="tab" aria-selected="false">03</button>
+      </div>
+    </div>
+
+    <div class="case-card__bottom">
+      <h2 class="case-card__title" id="case-title">Configurator</h2>
+      <p class="case-card__desc" id="case-desc">A platform that helps home owners plan and implement energy renovation measures with confidence.</p>
+    </div>
+  </section>
+</main>
+</div>
+
+<section class="about" id="about" aria-labelledby="about-title" aria-hidden="true">
+  <div class="about-heading">
+    <h1 id="about-title">Hi, I am a product designer living and working in Berlin, specializing in making complex digital products feel clear, useful, and human.</h1>
+  </div>
+  <figure class="about-portrait">
+    <img src="assets/about-anna.webp" alt="Portrait of Anna Iarinovskaia">
+  </figure>
+  <p class="about-lead">With experience beyond interface design, Anna leads projects from research and product strategy through interaction design, prototyping, and scalable design systems.</p>
+  <div class="about-meta">
+    <a href="mailto:hello@annaiarinovskaia.com">Email ↗</a>
+    <a href="https://www.linkedin.com/search/results/all/?keywords=Anna%20Iarinovskaia" target="_blank" rel="noreferrer">LinkedIn ↗</a>
+  </div>
+</section>
+
+<section class="story" id="story" data-scroll-story></section>
+
+<section class="case-detail" id="case-detail">
+  <div class="case-detail__inner">
+
+    <div class="case-detail__meta">
+      <div class="case-detail__meta-col">
+        <span class="case-detail__meta-label">Timeline</span>
+        <span class="case-detail__meta-value">1 Month</span>
+      </div>
+      <div class="case-detail__meta-col case-detail__meta-col--scope">
+        <span class="case-detail__meta-label">Scope</span>
+        <span class="case-detail__meta-value">Research</span>
+        <span class="case-detail__meta-value">Design</span>
+        <span class="case-detail__meta-value">Testing</span>
+      </div>
+      <div class="case-detail__meta-col case-detail__meta-col--team">
+        <span class="case-detail__meta-label">Team</span>
+        <span class="case-detail__meta-value">Product Manager</span>
+        <span class="case-detail__meta-value">Developers</span>
+        <span class="case-detail__meta-value">Product Designer (me)</span>
+      </div>
+    </div>
+
+    <div class="case-detail__row case-detail__row--context">
+      <h2 class="case-detail__label">Context</h2>
+      <div class="case-detail__columns">
+        <p>The platform helps users manage and analyze property energy data. Previously, onboarding happened entirely outside the product — a sales team walked each user through setup before handing over access.</p>
+        <p>With the shift to a freemium model, users could now sign up and begin independently. But the product wasn't ready to receive them—new users arrived at an empty dashboard, with no indication of how to get started or unlock value.</p>
+      </div>
+    </div>
+
+    <div class="case-detail__row case-detail__row--goal">
+      <h2 class="case-detail__label">Goal</h2>
+      <div class="case-detail__goal-content">
+        <div class="case-detail__columns">
+          <ul class="case-detail__bullets">
+            <li>Guide users to their first meaningful outcome — creating a property.</li>
+            <li>Reduce confusion and drop-off immediately after signup.</li>
+          </ul>
+          <ul class="case-detail__bullets">
+            <li>Support incomplete data scenarios without blocking progress.</li>
+            <li>Keep flexibility — different users arrive with different contexts.</li>
+          </ul>
+        </div>
+        <p class="case-detail__principle">Onboarding shouldn't explain the product — it should drive users to create their first property, where value begins.</p>
+      </div>
+    </div>
+
+    <div class="case-detail__row case-detail__row--approach">
+      <h2 class="case-detail__label">Approach</h2>
+      <ol class="case-detail__decisions">
+        <li class="case-detail__decision">
+          <h3 class="case-detail__decision-heading">01. Action driven onboarding</h3>
+          <p class="case-detail__decision-body">Replaced passive onboarding tours and tooltips with a goal-oriented property creation flow. Instead of explaining what the product does, users immediately do the thing that reveals it.</p>
+          <img class="case-detail__decision-image" src="assets/story/onboarding-01-address.png" alt="Property address entry step of the onboarding flow">
+        </li>
+
+        <li class="case-detail__decision">
+          <h3 class="case-detail__decision-heading">02. Simplified property creation</h3>
+          <p class="case-detail__decision-body">Property details are reduced to only the fields the next step actually needs, deferring everything else until it's relevant.</p>
+          <img class="case-detail__decision-image" src="assets/story/onboarding-03-property-details.png" alt="Property details form step">
+        </li>
+
+        <li class="case-detail__decision">
+          <h3 class="case-detail__decision-heading">03. Flexible and non-blocking</h3>
+          <p class="case-detail__decision-body">Users can save as a draft, skip a step, or come back later. Nothing in the flow is a hard gate on reaching the dashboard.</p>
+          <div class="case-detail__decision-image case-detail__decision-image--missing" role="img" aria-label="Screenshot placeholder">Screenshot needed — no distinct screen for this behavior yet</div>
+        </li>
+
+        <li class="case-detail__decision">
+          <h3 class="case-detail__decision-heading">04. Onboarding extends into the dashboard</h3>
+          <p class="case-detail__decision-body">The dashboard homepage itself continues the onboarding, guiding the user toward their next action instead of handing off to an empty screen once setup ends.</p>
+          <img class="case-detail__decision-image" src="assets/story/onboarding-04-home.png" alt="Dashboard homepage continuing the onboarding guidance">
+        </li>
+      </ol>
+    </div>
+
+    <div class="case-detail__row case-detail__row--impact">
+      <h2 class="case-detail__label">Impact</h2>
+      <div class="case-detail__impact-content">
+        <h3 class="case-detail__heading">Placeholder headline about the measured outcome.</h3>
+        <ul class="case-detail__metrics">
+          <li class="case-detail__metric">
+            <span class="case-detail__metric-number">—%</span>
+            <span class="case-detail__metric-label">Placeholder metric label</span>
+          </li>
+          <li class="case-detail__metric">
+            <span class="case-detail__metric-number">—%</span>
+            <span class="case-detail__metric-label">Placeholder metric label</span>
+          </li>
+          <li class="case-detail__metric">
+            <span class="case-detail__metric-number">—x</span>
+            <span class="case-detail__metric-label">Placeholder metric label</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="case-detail__row case-detail__row--reflection">
+      <h2 class="case-detail__label">Reflection</h2>
+      <p class="case-detail__reflection-body">Placeholder closing reflection — a short paragraph on what this project taught about onboarding, in hindsight, and what would be approached differently next time.</p>
+    </div>
+
+  </div>
+</section>
+
+<script src="js/laptop-mockup.js"></script>
+<script src="js/main.js"></script>
+<script src="js/scroll-story.js"></script>
+<script src="js/data/onboarding-story.js"></script>
+<script src="js/story-init.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "diff_pct": 33.674,
+  "target_size": [
+    4404,
+    2403
+  ],
+  "rendered_size": [
+    4404,
+    2402
+  ],
+  "size_mismatch": true,
+  "tolerance": 24
+}

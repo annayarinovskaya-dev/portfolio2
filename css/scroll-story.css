@@ -1,0 +1,599 @@
+/* ============================================================
+   SCROLL STORY — reuses ORYZO tokens declared in :root (styles.css).
+   Mostly additive; the exceptions are .hero / .story-pin / .case-detail
+   below, which set up the default pin-and-cover handoff (hero stays put,
+   #case-detail rises to cover it) and the .is-handoff hooks case 3's own
+   pinned run needs on top of that.
+   ============================================================ */
+
+.story-pin {
+  position: relative;
+  /* One extra viewport height of scroll room beyond the hero's own 100vh —
+     gives the sticky hero that much "hold" before it releases, exactly
+     matching the distance #case-detail needs to rise from off-screen to a
+     full cover (see #case-detail below). Case 3's own pinned run
+     (setupPinned() in scroll-story.js) collapses this to a plain 100vh via
+     inline style while armed, and the .is-armed override below restores
+     normal flow for #case-detail so that run is left untouched. */
+  height: 200vh;
+}
+
+.hero {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* #case-detail rises from the bottom to fully cover the pinned hero above,
+   driven by nothing but native scroll: pulling it up by that same 100vh
+   "hold" distance means its top sits exactly at the bottom edge of the
+   viewport at scrollY 0, and reaches the top of the viewport — fully
+   covering the hero — right as the hero's sticky hold runs out above.
+   Assumes .about (position:fixed, out of flow) and .story (empty outside
+   case 3's own pinned run) contribute no flow height in between — true for
+   the default hero. */
+.case-detail {
+  position: relative;
+  z-index: 2;
+  margin-top: -100vh;
+}
+
+.story-pin.is-armed ~ .case-detail {
+  margin-top: 0;
+}
+
+/* Hero's own static screen hands off to the pin overlay as soon as the
+   user starts scrolling past the hero. (The old scroll cue that used to
+   fade alongside it has been replaced by .story__progress, which is
+   page-level and no longer tied to hero handoff.) */
+.hero.is-handoff .hero__screen {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+/* ---------- PIN OVERLAY (appended into .hero while armed) ---------- */
+
+.story__pin-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.story__pin-overlay.is-visible {
+  opacity: 1;
+}
+
+/* Positioned independently — top anchored to the case-nav's vertical
+   position, for the same right-column rhythm as the hero's case-nav. */
+.story__panel {
+  position: absolute;
+  top: calc(33.08vh + 99px);
+  right: 4.06vw;
+  width: 15.6vw;
+  min-width: 250px;
+  text-align: left;
+  pointer-events: none;
+}
+
+.story__panel-block {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.story__panel-block.is-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.story__panel-number {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: var(--font-weight-regular);
+  color: var(--color-off-white);
+  opacity: 0.55;
+}
+
+.story__panel-kicker {
+  margin: 0 0 10px;
+  font-size: var(--outcome-label-size);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.15;
+  color: var(--color-case-accent);
+}
+
+.story__panel-heading {
+  margin: 0 0 10px;
+  font-family: var(--font-serif);
+  font-size: clamp(18px, 1.6vw, 28px);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.1;
+  color: var(--color-off-white);
+}
+
+.story__panel-body {
+  margin: 0;
+  font-size: clamp(14px, 1.05vw, 21px);
+  line-height: 1.4;
+  color: var(--color-off-white);
+}
+
+/* Opt-in for a heading that should read as body copy, not a display
+   headline — same typeface as .story__panel-body / .story__flow-body. */
+.story__panel-heading--plain,
+.story__flow-heading--plain {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-regular);
+}
+
+.story__panel-heading--plain {
+  font-size: clamp(14px, 1.05vw, 21px);
+}
+
+.story__flow-heading--plain {
+  font-size: clamp(15px, 1.1vw, 20px);
+}
+
+.story__panel-list {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.story__panel-list li {
+  position: relative;
+  padding-left: 16px;
+  font-size: clamp(13px, 0.95vw, 17px);
+  line-height: 1.4;
+  color: var(--color-off-white);
+}
+
+.story__panel-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 8px;
+  height: 1px;
+  background: var(--color-case-accent);
+}
+
+/* ---------- INTRO TEASER (one-time skim-pace beat, before the first section) ---------- */
+
+.story__teaser {
+  position: absolute;
+  top: calc(33.08vh + 99px);
+  right: 4.06vw;
+  width: 15.6vw;
+  min-width: 250px;
+  text-align: left;
+  pointer-events: none;
+}
+
+.story__teaser-line {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  font-family: var(--font-display);
+  font-size: clamp(16px, 1.4vw, 26px);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+  color: var(--color-off-white);
+}
+
+.story__teaser-line.is-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.story__quote {
+  margin: 12px 0 0;
+  padding-left: 14px;
+  border-left: 2px solid var(--color-case-accent);
+  font-family: var(--font-serif);
+  font-size: clamp(16px, 1.3vw, 22px);
+  font-style: normal;
+  line-height: 1.25;
+  color: var(--color-off-white);
+}
+
+/* Same markup also lands inside the flow sections and their stacked/mobile
+   equivalent, which sit on the story's own (light) background rather than
+   over the pinned hero photo — so the quote needs the dark ink there. */
+.story__flow-section .story__quote,
+.story__mobile-block .story__quote {
+  color: var(--color-cork-border);
+}
+
+/* Screen overlay — positioned via LaptopMockup.computeScreenRect() to sit
+   exactly over the hero's laptop screen. */
+.story__screen {
+  position: absolute;
+  z-index: 2;
+  overflow: hidden;
+  background: #e4e4e0;
+}
+
+.story__screen-frame {
+  /* Overscanned 1px past the container on every side, then clipped back by
+     the container's overflow:hidden — hides the sub-pixel seam that shows
+     the laptop photo behind at the container's fractional (non-integer px)
+     position, since a composited (opacity-animated) child doesn't
+     sub-pixel-blend against the layer behind it the way same-layer content
+     would. */
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+  object-fit: cover;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.story__screen-frame.is-active {
+  opacity: 1;
+}
+
+/* ---------- PROGRESS TRAIL (rotated-line language, no section names) ---------- */
+
+.story__progress {
+  position: fixed;
+  right: var(--spacing-45);
+  /* Bottom-anchored to match where the old (now-removed) .scroll-cue sat. */
+  bottom: 5.45vh;
+  height: 34vh;
+  min-height: 220px;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.story__progress.is-visible {
+  opacity: 1;
+}
+
+/* Fixed-length track — same position and length at every scroll position,
+   from the top of the hero through the end of #case-detail. Never resized
+   or repositioned; only .story__progress-marker below moves. */
+.story__progress-line {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* The only moving part: translateY is set from JS as frac * track height
+   (plus the -50% self-centering below), so it travels smoothly along the
+   fixed-length track above instead of the track itself changing size. */
+.story__progress-marker {
+  position: absolute;
+  top: 0;
+  left: -2px;
+  width: 5px;
+  height: 5px;
+  background: var(--color-off-white);
+  transform: translateY(-50%);
+  transition: transform 0.5s ease, background 0.4s ease;
+}
+
+/* Standalone wayfinding hint, decoupled from any line element (replaces
+   the old .scroll-cue__text, which was anchored to a now-removed line).
+   Anchored near the bottom of the trail's own fixed box — same bottom:4px
+   inset the old .scroll-cue__text used, which now lines up again since
+   the box itself is bottom-anchored to the same offset the old .scroll-cue
+   box used. Fades out on the first scroll tick on any case, not just
+   case 3's pin handoff. */
+.story__progress-hint {
+  position: absolute;
+  bottom: 4px;
+  left: 10px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: var(--font-weight-regular);
+  color: var(--color-off-white);
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+.story__progress.has-scrolled .story__progress-hint {
+  opacity: 0;
+}
+
+/* Once the pin releases and the page behind the rail turns from the dark
+   hero photo to the story section's light background, the off-white line
+   and marker would vanish right as they reach the end — swap to dark ink. */
+.story__progress.is-on-light .story__progress-line {
+  background: rgba(16, 9, 4, 0.2);
+}
+
+.story__progress.is-on-light .story__progress-marker {
+  background: var(--color-walnut-shadow);
+}
+
+/* Small contextual caption ("01 — Context") beside a heading — fades with
+   the section it belongs to, never lives in a fixed sidebar. */
+.story__caption {
+  display: inline-block;
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: var(--font-weight-regular);
+  color: var(--color-bark-brown);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.story__flow-section.is-visible .story__caption,
+.story__mobile-block.is-visible .story__caption {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------- FLOW SECTIONS (closing cue) — normal document scroll, after the pinned run ---------- */
+
+.story {
+  position: relative;
+  background: var(--color-off-white);
+}
+
+.story__flow-section {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--spacing-12);
+  padding: var(--spacing-68) var(--spacing-45);
+  max-width: 720px;
+  margin: 0 auto;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.story__flow-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.story__flow-heading {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(28px, 3.2vw, 48px);
+  line-height: 1.05;
+  color: var(--color-walnut-shadow);
+}
+
+.story__flow-body {
+  margin: 0;
+  max-width: 60ch;
+  font-size: clamp(15px, 1.1vw, 20px);
+  line-height: 1.5;
+  color: var(--color-cork-border);
+}
+
+.story__stat-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-24);
+  margin: var(--spacing-12) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.story__stat-list li {
+  flex: 1 1 200px;
+  border-top: 1px solid var(--color-cork-border);
+  padding-top: var(--spacing-12);
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--color-cork-border);
+}
+
+/* Closing cue — same rotated-label + vertical-line pattern as the hero's
+   "Scroll down to case study" cue. */
+.story__closing {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 var(--spacing-45) var(--spacing-68);
+}
+
+.story__closing-cue {
+  position: relative;
+  display: block;
+  /* Same length as .story__progress, so the two rails read as one
+     consistent scroll-line language across the case study. */
+  height: 34vh;
+  min-height: 220px;
+  padding-left: 20px;
+  color: rgba(16, 9, 4, 0.4);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.story__closing-cue.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.story__closing-cue::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(16, 9, 4, 0.35);
+}
+
+.story__closing-cue-text {
+  position: absolute;
+  left: 10px;
+  bottom: 4px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--color-walnut-shadow);
+}
+
+/* ---------- STACKED LAYOUT (mobile, and reduced-motion fallback) ---------- */
+
+.story__mobile-block {
+  padding: var(--spacing-45) var(--spacing-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.story__mobile-block.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.story__mobile-laptop {
+  position: relative;
+  width: 100%;
+  margin-bottom: var(--spacing-12);
+}
+
+/* The site's name/role + ABOUT nav are position:fixed above everything
+   (styles.css .intro / .side-nav, z-index 11) and stay legible over the
+   hero only because .hero__vignette permanently darkens it underneath.
+   Stacked story blocks have no such backing, so a light laptop photo
+   scrolling to the top of the viewport washes that text out — this
+   reproduces the same top-edge scrim locally, just for these thumbnails. */
+.story__mobile-laptop::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 110px;
+  background: linear-gradient(to bottom, rgba(16, 9, 4, 0.55), rgba(16, 9, 4, 0));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.story__mobile-laptop-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.story__mobile-laptop-screen {
+  position: absolute;
+  object-fit: cover;
+}
+
+/* Stacked teaser block — same laptop + screenshot treatment as a full
+   section, but only the one-line placeholder instead of heading/body. */
+.story__mobile-teaser {
+  padding: var(--spacing-45) var(--spacing-24) var(--spacing-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.story__mobile-teaser.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.story__teaser-line--mobile {
+  position: static;
+  transform: none;
+  opacity: 1;
+  transition: none;
+  font-size: clamp(16px, 4.5vw, 20px);
+  color: var(--color-walnut-shadow);
+}
+
+/* No-motion mode (prefers-reduced-motion): everything is simply visible,
+   with no scroll-linked animation. */
+.story.no-motion .story__mobile-block,
+.story.no-motion .story__mobile-teaser,
+.story.no-motion .story__flow-section,
+.story.no-motion .story__closing-cue,
+.story.no-motion .story__caption {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* ---------- REDUCED MOTION ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    position: relative !important;
+  }
+  .story-pin {
+    height: auto !important;
+  }
+  .case-detail {
+    margin-top: 0 !important;
+  }
+  .story__pin-overlay,
+  .story__panel-block,
+  .story__teaser-line,
+  .story__screen-frame {
+    transition: none !important;
+  }
+  .story__progress {
+    display: none;
+  }
+}
+
+/* ---------- MOBILE (matches the hero's own 980px breakpoint) ---------- */
+
+@media (max-width: 980px) {
+  /* Pin-and-cover reveal is a desktop-scroll effect — plain stacked flow
+     on mobile, same as the case-3 pin overlay it sits alongside below. */
+  .story-pin {
+    height: auto;
+  }
+  .hero {
+    position: relative;
+  }
+  .case-detail {
+    margin-top: 0;
+  }
+  .story__pin-overlay {
+    display: none;
+  }
+  .story__progress {
+    display: none;
+  }
+  .story__flow-section {
+    padding: var(--spacing-45) var(--spacing-24);
+    max-width: none;
+  }
+  .story__closing {
+    padding: 0 var(--spacing-24) var(--spacing-45);
+    justify-content: flex-start;
+  }
+}
