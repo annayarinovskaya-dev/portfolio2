@@ -60,6 +60,24 @@ Usage
     python3 scripts/regenerate-onboarding-composite.py            # regenerate the composite
 
 Requires ffmpeg/ffprobe on PATH and `opencv-python` + `numpy` installed.
+
+Interpolation and color tagging (quality audit, 2026-09-10)
+-------------------------------------------------------------
+The warp uses cv2.INTER_LANCZOS4, not the OpenCV default INTER_LINEAR.
+Measured by de-warping a regenerated frame back into source coordinate
+space and comparing against that source frame directly (PSNR/SSIM against
+assets/onboarding-flow.mp4's own frame 700, a dense-text dashboard view):
+bilinear capped the geometry-only round-trip at ~33.4dB/0.989 SSIM; cubic
+reached ~37.1dB, Lanczos4 ~38.1dB (best of the three tested) — raising the
+encode bitrate instead moved PSNR by only ~0.1dB for +53% file size, so the
+resampling filter was the actual bottleneck, not bitrate. Full pipeline
+(with the real encode) went from 32.07dB/0.9865 (bilinear) to
+36.38dB/0.9932 (Lanczos4) at a +7% file-size cost (476KB vs 445KB).
+The encoder also now tags color_primaries/trc/colorspace bt709 and
+color_range tv, matching onboarding-flow.mp4's own tagging — the raw
+rawvideo pipe this script pushes frames through doesn't carry color
+metadata, so without these flags the output was encoding untagged
+(ffprobe reported color_range/space/transfer/primaries as "unknown").
 """
 
 import argparse
@@ -147,6 +165,12 @@ def run_regenerate():
             "-i", "-",
             "-an", "-c:v", "libx264", "-profile:v", "high", "-pix_fmt", "yuv420p",
             "-b:v", "420k", "-maxrate", "600k", "-bufsize", "800k",
+            # -color_primaries/-color_trc alone are not enough to make
+            # libx264 write those two fields into the H.264 VUI (verified:
+            # -colorspace/-color_range DO land without it, primaries/trc
+            # don't) — -x264-params forces all four into the bitstream.
+            "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709", "-color_range", "tv",
+            "-x264-params", "colorprim=bt709:transfer=bt709:colormatrix=bt709:fullrange=off",
             "-movflags", "+faststart",
             OUT,
         ],
@@ -162,7 +186,9 @@ def run_regenerate():
             break
         frame = np.frombuffer(raw, dtype=np.uint8).reshape(SRC_H, SRC_W, 3)
         crop = frame[INNER_T:INNER_B, INNER_L:INNER_R]
-        warped = cv2.warpPerspective(crop, M, (DST_W, DST_H), flags=cv2.INTER_LINEAR)
+        # INTER_LANCZOS4, not the default INTER_LINEAR — see module docstring
+        # for the PSNR/SSIM measurements behind this choice.
+        warped = cv2.warpPerspective(crop, M, (DST_W, DST_H), flags=cv2.INTER_LANCZOS4)
         out = np.where(mask3 > 0, warped, bg)
         writer.stdin.write(out.tobytes())
         frame_count += 1
