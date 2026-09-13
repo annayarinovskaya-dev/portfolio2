@@ -36,6 +36,12 @@
   position: relative;
   z-index: 2;
   margin-top: -100vh;
+  /* Softens the rising panel's leading edge as it slides up over the pinned
+     hero mid-scroll — without this the hero photo gets cut by a flat, hard
+     line. Same dark scrim color used throughout (rgba(16,9,4,…)) cast
+     upward as a shadow instead of a gradient, so it reads as the panel
+     lifting off the photo rather than a separate visual layer. */
+  box-shadow: 0 -32px 56px -12px rgba(16, 9, 4, 0.4);
 }
 
 .story-pin.is-armed ~ .case-detail {
@@ -94,15 +100,14 @@
 
 .story__panel-number {
   display: block;
-  margin: 0 0 8px;
+  margin: 0 0 var(--spacing-8);
   font-size: 12px;
   font-weight: var(--font-weight-regular);
-  color: var(--color-off-white);
-  opacity: 0.55;
+  color: var(--text-tertiary);
 }
 
 .story__panel-kicker {
-  margin: 0 0 10px;
+  margin: 0 0 var(--spacing-10);
   font-size: var(--outcome-label-size);
   font-weight: var(--font-weight-bold);
   line-height: 1.15;
@@ -110,19 +115,20 @@
 }
 
 .story__panel-heading {
-  margin: 0 0 10px;
+  margin: 0 0 var(--spacing-10);
   font-family: var(--font-serif);
   font-size: clamp(18px, 1.6vw, 28px);
   font-weight: var(--font-weight-medium);
   line-height: 1.1;
-  color: var(--color-off-white);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
 }
 
 .story__panel-body {
   margin: 0;
   font-size: clamp(14px, 1.05vw, 21px);
   line-height: 1.4;
-  color: var(--color-off-white);
+  color: var(--text-secondary);
 }
 
 /* Opt-in for a heading that should read as body copy, not a display
@@ -142,20 +148,20 @@
 }
 
 .story__panel-list {
-  margin: 12px 0 0;
+  margin: var(--spacing-12) 0 0;
   padding: 0;
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-8);
 }
 
 .story__panel-list li {
   position: relative;
-  padding-left: 16px;
+  padding-left: var(--spacing-18);
   font-size: clamp(13px, 0.95vw, 17px);
   line-height: 1.4;
-  color: var(--color-off-white);
+  color: var(--text-secondary);
 }
 
 .story__panel-list li::before {
@@ -191,7 +197,7 @@
   font-size: clamp(16px, 1.4vw, 26px);
   font-weight: var(--font-weight-medium);
   line-height: 1.3;
-  color: var(--color-off-white);
+  color: var(--text-primary);
 }
 
 .story__teaser-line.is-active {
@@ -200,14 +206,15 @@
 }
 
 .story__quote {
-  margin: 12px 0 0;
-  padding-left: 14px;
+  margin: var(--spacing-12) 0 0;
+  padding-left: var(--spacing-18);
   border-left: 2px solid var(--color-case-accent);
   font-family: var(--font-serif);
   font-size: clamp(16px, 1.3vw, 22px);
   font-style: normal;
   line-height: 1.25;
-  color: var(--color-off-white);
+  letter-spacing: -0.01em;
+  color: var(--text-secondary);
 }
 
 /* Same markup also lands inside the flow sections and their stacked/mobile
@@ -227,13 +234,11 @@
   background: #e4e4e0;
 }
 
-.story__screen-frame {
+.story__screen-video {
   /* Overscanned 1px past the container on every side, then clipped back by
      the container's overflow:hidden — hides the sub-pixel seam that shows
      the laptop photo behind at the container's fractional (non-integer px)
-     position, since a composited (opacity-animated) child doesn't
-     sub-pixel-blend against the layer behind it the way same-layer content
-     would. */
+     position. */
   position: absolute;
   left: -1px;
   top: -1px;
@@ -241,23 +246,21 @@
   height: calc(100% + 2px);
   object-fit: cover;
   border-radius: inherit;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-.story__screen-frame.is-active {
-  opacity: 1;
 }
 
 /* ---------- PROGRESS TRAIL (rotated-line language, no section names) ---------- */
 
 .story__progress {
   position: fixed;
-  right: var(--spacing-45);
-  /* Bottom-anchored to match where the old (now-removed) .scroll-cue sat. */
+  right: var(--spacing-48);
+  /* top/height are set from JS (positionTrail() in scroll-story.js), which
+     bottom-aligns this to the hero case description text and height-matches
+     it to the left-side .case-nav rail — bottom/height here are only the
+     pre-JS fallback for the first paint. No min-height: it would win over
+     the JS-computed height whenever .case-nav is shorter than that floor,
+     breaking the height-match this element exists to keep. */
   bottom: 5.45vh;
   height: 34vh;
-  min-height: 220px;
   z-index: 20;
   opacity: 0;
   transition: opacity 0.4s ease;
@@ -266,6 +269,69 @@
 
 .story__progress.is-visible {
   opacity: 1;
+}
+
+/* The About overlay sits above this trail (z-index 10 vs. 20), so without
+   this the line/marker/hint would float on top of it. */
+body.about-open .story__progress {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* "Back to top" indicator — takes over .story__progress-hint's exact spot
+   (same bottom:4px/left:10px anchor) once the landing hero is fully covered
+   by the case study (hero-covered), rather than hiding hint fade like the
+   first scroll tick does. Reads as a replacement for the hint, not a
+   separate element: the label sits where "Scroll down to case study" sat,
+   with just the caret added above it. */
+.story__progress-top {
+  position: absolute;
+  bottom: 4px;
+  left: 10px;
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-grey);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease, color 0.4s ease;
+}
+
+.story__progress.hero-covered .story__progress-top {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.story__progress-top:hover {
+  opacity: 0.65;
+}
+
+.story__progress-top-icon {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-bottom: var(--spacing-6);
+  margin-left: -3.5px;
+  width: 7px;
+  height: 7px;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+  transform: rotate(-45deg);
+}
+
+.story__progress-top-label {
+  display: block;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: var(--font-weight-regular);
+}
+
+.story__progress.is-on-light .story__progress-top {
+  color: var(--color-grey);
 }
 
 /* Fixed-length track — same position and length at every scroll position,
@@ -278,6 +344,7 @@
   bottom: 0;
   width: 1px;
   background: rgba(255, 255, 255, 0.25);
+  transition: opacity 0.3s ease;
 }
 
 /* The only moving part: translateY is set from JS as frac * track height
@@ -291,7 +358,17 @@
   height: 5px;
   background: var(--color-off-white);
   transform: translateY(-50%);
-  transition: transform 0.5s ease, background 0.4s ease;
+  transition: transform 0.5s ease, background 0.4s ease, opacity 0.3s ease;
+}
+
+/* Once the footer has scrolled into view, the line/marker's job (tracking
+   progress through the still-scrolling middle of the page) is done — drop
+   them so a long line doesn't visually run through the footer band, while
+   the vertical "Back to top" label (governed separately by hero-covered)
+   keeps reading at the very bottom of the page. */
+.story__progress.at-page-end .story__progress-line,
+.story__progress.at-page-end .story__progress-marker {
+  opacity: 0;
 }
 
 /* Standalone wayfinding hint, decoupled from any line element (replaces
@@ -310,7 +387,7 @@
   white-space: nowrap;
   font-size: 12px;
   font-weight: var(--font-weight-regular);
-  color: var(--color-off-white);
+  color: var(--text-tertiary);
   opacity: 1;
   transition: opacity 0.4s ease;
 }
@@ -323,7 +400,7 @@
    hero photo to the story section's light background, the off-white line
    and marker would vanish right as they reach the end — swap to dark ink. */
 .story__progress.is-on-light .story__progress-line {
-  background: rgba(16, 9, 4, 0.2);
+  background: var(--color-image-stroke);
 }
 
 .story__progress.is-on-light .story__progress-marker {
@@ -334,10 +411,10 @@
    the section it belongs to, never lives in a fixed sidebar. */
 .story__caption {
   display: inline-block;
-  margin: 0 0 10px;
+  margin: 0 0 var(--spacing-10);
   font-size: 12px;
   font-weight: var(--font-weight-regular);
-  color: var(--color-bark-brown);
+  color: var(--color-brand-red);
   opacity: 0;
   transform: translateY(6px);
   transition: opacity 0.4s ease, transform 0.4s ease;
@@ -362,7 +439,7 @@
   flex-direction: column;
   justify-content: center;
   gap: var(--spacing-12);
-  padding: var(--spacing-68) var(--spacing-45);
+  padding: var(--spacing-68) var(--spacing-48);
   max-width: 720px;
   margin: 0 auto;
   opacity: 0;
@@ -380,6 +457,7 @@
   font-family: var(--font-serif);
   font-size: clamp(28px, 3.2vw, 48px);
   line-height: 1.05;
+  letter-spacing: -0.01em;
   color: var(--color-walnut-shadow);
 }
 
@@ -414,7 +492,7 @@
 .story__closing {
   display: flex;
   justify-content: flex-end;
-  padding: 0 var(--spacing-45) var(--spacing-68);
+  padding: 0 var(--spacing-48) var(--spacing-68);
 }
 
 .story__closing-cue {
@@ -460,7 +538,7 @@
 /* ---------- STACKED LAYOUT (mobile, and reduced-motion fallback) ---------- */
 
 .story__mobile-block {
-  padding: var(--spacing-45) var(--spacing-24);
+  padding: var(--spacing-48) var(--spacing-24);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-12);
@@ -510,7 +588,7 @@
 /* Stacked teaser block — same laptop + screenshot treatment as a full
    section, but only the one-line placeholder instead of heading/body. */
 .story__mobile-teaser {
-  padding: var(--spacing-45) var(--spacing-24) var(--spacing-24);
+  padding: var(--spacing-48) var(--spacing-24) var(--spacing-24);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-8);
@@ -556,11 +634,11 @@
   }
   .case-detail {
     margin-top: 0 !important;
+    box-shadow: none !important;
   }
   .story__pin-overlay,
   .story__panel-block,
-  .story__teaser-line,
-  .story__screen-frame {
+  .story__teaser-line {
     transition: none !important;
   }
   .story__progress {
@@ -581,6 +659,7 @@
   }
   .case-detail {
     margin-top: 0;
+    box-shadow: none;
   }
   .story__pin-overlay {
     display: none;
@@ -589,11 +668,11 @@
     display: none;
   }
   .story__flow-section {
-    padding: var(--spacing-45) var(--spacing-24);
+    padding: var(--spacing-48) var(--spacing-24);
     max-width: none;
   }
   .story__closing {
-    padding: 0 var(--spacing-24) var(--spacing-45);
+    padding: 0 var(--spacing-24) var(--spacing-48);
     justify-content: flex-start;
   }
 }

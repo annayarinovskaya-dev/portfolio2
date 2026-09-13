@@ -8,11 +8,15 @@
 // ============================================================
 // WHEEL-CAPTURE STATE MACHINE (setupPinned() > onWheel(), below)
 // ============================================================
-// The desktop pinned run doesn't map scroll distance to progress — it's a
-// fixed 100vh pin wrapper, and every wheel event over it is intercepted
+// The desktop pinned run doesn't map scroll distance to page progress — it's
+// a fixed 100vh pin wrapper, and every wheel event over it is intercepted
 // (preventDefault) to step through screens instead of scrolling the page.
-// Check new changes to onWheel/setEngaged/releaseForward/goToStep against
-// this before relying on a manual repro to catch regressions.
+// Steps themselves ARE paced by scroll distance, though: onWheel buffers
+// incoming wheel input and fires one step per STEP_DISTANCE_PX of
+// accumulated motion, so pacing tracks how far the user has scrolled rather
+// than how long or how many discrete events their gesture happened to
+// produce. Check new changes to onWheel/setEngaged/releaseForward/goToStep
+// against this before relying on a manual repro to catch regressions.
 //
 // STATE
 //   engaged          bool    — true while wheel events are being captured to
@@ -31,65 +35,48 @@
 //                               because a full escape needs many ~100px wheel
 //                               notches against a 100vh pin, so the pin still
 //                               "fillsViewport" for most of that distance.
+//   scrollAccum      px      — running total of |deltaY| buffered since the
+//                               last step fired (or since engage). This is
+//                               the primary pacing signal: once it reaches
+//                               STEP_DISTANCE_PX, one step fires and the
+//                               buffer resets to 0. Using distance rather
+//                               than event count or gesture duration means
+//                               pacing is consistent regardless of how a
+//                               device chops one physical motion into wheel
+//                               events — a trackpad's long tail of small
+//                               momentum deltas and a mouse's few large
+//                               notches both take roughly the same amount of
+//                               physical scrolling to advance one step.
 //   lastStepTime     timestamp — performance.now() at the last engage/step/
-//                               release. Throttles engaged-branch step changes
-//                               to one per MIN_STEP_INTERVAL_MS, so a
-//                               sustained motion steps at a readable pace
-//                               instead of firing on every wheel event.
-//   lastEventTime    timestamp — performance.now() at the previous wheel
-//                               event, of ANY kind, anywhere on the page.
-//                               Used only to detect gesture boundaries (see
-//                               gestureStepCount) — unrelated to lastStepTime.
-//   gestureStepCount count    — steps already fired within the current
-//                               gesture. A "gesture" here means "no gap since
-//                               the previous wheel event has exceeded
-//                               GESTURE_SILENCE_MS yet" — i.e. there's been no
-//                               real pause, so this is still plausibly the
-//                               same continuous physical motion (an active
-//                               drag, or one flick's momentum decaying).
-//                               Capped at MAX_STEPS_PER_GESTURE: once spent,
-//                               further wheel input in the same gesture is
-//                               still captured (preventDefault) but inert
-//                               until a real pause resets the count. This
-//                               exists because MIN_STEP_INTERVAL_MS pacing
-//                               alone doesn't bound how far ONE released
-//                               flick can travel — real trackpad momentum
-//                               commonly decays over 1.5–2.5+ seconds, long
-//                               enough to traverse an entire short sequence
-//                               at a 220ms cadence. GESTURE_SILENCE_MS (400ms)
-//                               is deliberately larger than MIN_STEP_INTERVAL_MS
-//                               (220ms): a silence threshold *tighter* than
-//                               that would fragment one real decelerating
-//                               flick into several "gestures" (each getting
-//                               its own fresh budget), which defeats the cap
-//                               — confirmed against a real decaying-gap trace
-//                               (50ms → 567ms) where individual gaps only
-//                               cross 220ms well before the flick would
-//                               naturally be considered "over". A side effect:
-//                               very rapid repeated discrete inputs (under
-//                               ~400ms apart) get bucketed into one gesture
-//                               and capped too — treated as acceptable, since
-//                               genuinely deliberate discrete actions are
-//                               rarely that close together.
+//                               release. Enforces MIN_STEP_INTERVAL_MS as a
+//                               floor between fired steps — see below.
 //   fillsViewport    (derived, not stored) — pinWrapper's bounding rect is
 //                               within one viewport height of the top, i.e.
 //                               the pin currently occupies the screen.
 //                               Recomputed from live layout on every event.
 //
-// TRANSITIONS (all inside onWheel(), guarded first by !engaged / engaged)
-//   Every event first updates gesture-boundary bookkeeping: if
-//   now - lastEventTime > GESTURE_SILENCE_MS, gestureStepCount resets to 0
-//   (a real pause occurred — whatever comes next is a fresh gesture, wherever
-//   it's evaluated below). lastEventTime is then always updated to now.
+// Why a time floor still exists alongside distance pacing: some mice/wheels
+// report one large deltaY per notch (occasionally exceeding
+// STEP_DISTANCE_PX by itself), and rapid discrete notches from that kind of
+// device could otherwise each independently clear the distance threshold
+// within a handful of milliseconds of each other, firing several steps
+// almost simultaneously — unreadable regardless of how much "distance" was
+// nominally covered. MIN_STEP_INTERVAL_MS (150ms) bounds that: a step only
+// fires once BOTH scrollAccum >= STEP_DISTANCE_PX AND at least
+// MIN_STEP_INTERVAL_MS has elapsed since the previous step. In practice this
+// floor is inert for normal trackpad motion (accumulating 120px of small
+// deltas naturally takes well over 150ms) and only matters for
+// large-delta/high-frequency input. It is a safety floor, not the primary
+// pacing mechanism — distance is.
 //
+// TRANSITIONS (all inside onWheel(), guarded first by !engaged / engaged)
 //   1. !engaged, exitDirection null or reversed (sign(deltaY) !== it),
 //      fillsViewport true
 //        -> ENGAGE: preventDefault, snap-scroll pinWrapper flush to the
 //           viewport top, engaged=true, stepIndex = deltaY>0 ? 0 :
 //           totalSteps-1 (enter from the edge matching scroll direction),
-//           renderStep(stepIndex), lastStepTime=now, gestureStepCount=0,
-//           exitDirection=null. (Engaging doesn't itself spend the gesture
-//           budget — it's a transition, not an advance/retreat/release.)
+//           renderStep(stepIndex), lastStepTime=now, scrollAccum=0,
+//           exitDirection=null.
 //   2. !engaged, exitDirection null, fillsViewport false
 //        -> no-op; let native scroll proceed (not near the pin at all).
 //   3. !engaged, exitDirection = D, sign(deltaY) === D (still leaving in
@@ -102,68 +89,57 @@
 //        -> same as transition 1 (re-engage), after clearing exitDirection
 //           first. Lands back on the edge step matching the new direction,
 //           which is the step they just left — no jump.
-//   5. engaged, now - lastStepTime < MIN_STEP_INTERVAL_MS
-//        -> preventDefault, no-op (still capturing scroll; too soon since
-//           the last step to act again).
-//   6. engaged, throttle elapsed, gestureStepCount >= MAX_STEPS_PER_GESTURE
-//        -> preventDefault, no-op (this gesture has spent its step budget;
-//           stays pinned at the current step until a real pause — see the
-//           gesture-boundary bookkeeping above — starts a fresh one).
-//   7. engaged, throttle elapsed, budget available, deltaY > 0,
-//      stepIndex < totalSteps - 1
-//        -> ADVANCE: preventDefault, lastStepTime=now, gestureStepCount++,
+//   5. engaged, scrollAccum (after adding |deltaY|) < STEP_DISTANCE_PX, OR
+//      now - lastStepTime < MIN_STEP_INTERVAL_MS
+//        -> preventDefault, no-op (still buffering distance, or still
+//           within the time floor since the last step; either way, not
+//           enough to act on yet).
+//   6. engaged, scrollAccum >= STEP_DISTANCE_PX, time floor elapsed,
+//      deltaY > 0, stepIndex < totalSteps - 1
+//        -> ADVANCE: preventDefault, scrollAccum=0, lastStepTime=now,
 //           goToStep(stepIndex+1).
-//   8. engaged, throttle elapsed, budget available, deltaY > 0,
-//      stepIndex === totalSteps - 1
-//        -> RELEASE FORWARD: releaseForward() (engaged=false, does NOT
-//           restore the hero's own static .hero__screen or hide the
+//   7. engaged, scrollAccum >= STEP_DISTANCE_PX, time floor elapsed,
+//      deltaY > 0, stepIndex === totalSteps - 1
+//        -> RELEASE FORWARD: scrollAccum=0, releaseForward() (engaged=false,
+//           does NOT restore the hero's own static .hero__screen or hide the
 //           overlay — see releaseForward()'s own comment for why),
-//           exitDirection=1, lastStepTime=now, gestureStepCount++. Not
-//           preventDefault()ed: native scroll starts carrying the page away
-//           in this same event.
-//   9. engaged, throttle elapsed, budget available, deltaY < 0, stepIndex > 0
-//        -> RETREAT: preventDefault, lastStepTime=now, gestureStepCount++,
+//           exitDirection=1, lastStepTime=now. Not preventDefault()ed:
+//           native scroll starts carrying the page away in this same event.
+//   8. engaged, scrollAccum >= STEP_DISTANCE_PX, time floor elapsed,
+//      deltaY < 0, stepIndex > 0
+//        -> RETREAT: preventDefault, scrollAccum=0, lastStepTime=now,
 //           goToStep(stepIndex-1).
-//  10. engaged, throttle elapsed, budget available, deltaY < 0,
-//      stepIndex === 0
-//        -> RELEASE BACKWARD: setEngaged(false) (restores hero__screen/hides
-//           overlay — safe here because the hero's default screenshot
-//           already matches step 0), exitDirection=-1, lastStepTime=now,
-//           gestureStepCount++. Not preventDefault()ed, same reasoning as
-//           transition 8.
+//   9. engaged, scrollAccum >= STEP_DISTANCE_PX, time floor elapsed,
+//      deltaY < 0, stepIndex === 0
+//        -> RELEASE BACKWARD: scrollAccum=0, setEngaged(false) (restores
+//           hero__screen/hides overlay — safe here because the hero's
+//           default screenshot already matches step 0), exitDirection=-1,
+//           lastStepTime=now. Not preventDefault()ed, same reasoning as
+//           transition 7.
 //
 // Outside onWheel: teardown() (case-tab switch away, or a pinned<->stacked
 // mode change on resize) hard-resets everything — removes the overlay and
 // listeners, clears activePinStep. setupPinned() re-running (case-tab switch
 // back, or mode change back to pinned) recreates the whole closure, so all
 // of the above starts fresh at stepIndex=0, engaged=false, exitDirection=null,
-// gestureStepCount=0.
+// scrollAccum=0.
 // ============================================================
 (function () {
   'use strict';
 
-  // Throttles step changes while the wheel-capture stepper is engaged (see
-  // setupPinned() below): a step can fire again once this many ms have
-  // elapsed since the last one. See the state-machine comment above for how
-  // this combines with GESTURE_SILENCE_MS/MAX_STEPS_PER_GESTURE below.
-  var MIN_STEP_INTERVAL_MS = 220;
+  // Primary pacing signal for the wheel-capture stepper (see setupPinned()
+  // below): a step fires once this many px of |deltaY| have accumulated
+  // since the last step (or since engage). See the state-machine comment
+  // above for the full transition table.
+  var STEP_DISTANCE_PX = 120;
 
-  // A gap since the previous wheel event larger than this means a real
-  // pause happened — whatever comes next is a new gesture, and gets a fresh
-  // step budget (see gestureStepCount in the state-machine comment above).
-  // Deliberately larger than MIN_STEP_INTERVAL_MS: real trackpad momentum
-  // decays gradually, with individual gaps growing past 220ms well before
-  // the motion is actually over, so a threshold that small would fragment
-  // one flick into several gestures and defeat the cap below.
-  var GESTURE_SILENCE_MS = 400;
-
-  // How many steps one gesture (see GESTURE_SILENCE_MS) may auto-advance
-  // before further wheel input in that same gesture is captured but inert.
-  // Bounds how far a single released flick can carry the story — pacing
-  // alone (MIN_STEP_INTERVAL_MS) doesn't, since real momentum can keep
-  // feeding wheel events for 1.5-2.5+ seconds, long enough at a 220ms
-  // cadence to traverse an entire short sequence in one motion.
-  var MAX_STEPS_PER_GESTURE = 2;
+  // Safety floor alongside STEP_DISTANCE_PX: a step can fire again only
+  // once this many ms have elapsed since the last one, even if scrollAccum
+  // already cleared STEP_DISTANCE_PX. Guards against a device that reports
+  // large deltaY per notch firing several steps within milliseconds of each
+  // other — see the state-machine comment above for why distance alone
+  // isn't enough there.
+  var MIN_STEP_INTERVAL_MS = 150;
 
   function prefersReducedMotion() {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -204,7 +180,7 @@
   // sequence) render the kicker alone — no leading "undefined —" or blank
   // number segment.
   function captionHTML(section) {
-    return '<span class="story__caption">' + (section.number ? section.number + ' — ' : '') + section.kicker + '</span>';
+    return '<span class="story__caption">' + (section.number ? section.number + ' - ' : '') + section.kicker + '</span>';
   }
 
   // Page-level progress trail — one instance for the whole page, independent
@@ -216,28 +192,110 @@
   // per-case weighting, so it behaves identically whether or not the
   // current case has a pinned sequence in the middle of that scroll range.
   function initProgressTrail() {
-    const caseDetailEl = document.getElementById('case-detail');
+    // One #case-detail-N section is active at a time (see main.js
+    // initCaseDetailToggle) — re-queried on every update() rather than
+    // cached, since which one is active changes on case-tab switch.
+    function activeCaseDetailEl() {
+      return document.querySelector('.case-detail.is-active');
+    }
     const storyEl = document.getElementById('story');
-    if (!caseDetailEl) return;
+    if (!activeCaseDetailEl()) return;
 
     const progress = document.createElement('div');
     progress.className = 'story__progress';
     progress.innerHTML =
+      '<button type="button" class="story__progress-top">' +
+        '<span class="story__progress-top-icon" aria-hidden="true"></span>' +
+        '<span class="story__progress-top-label">Back to top</span>' +
+      '</button>' +
       '<span class="story__progress-line"></span>' +
       '<span class="story__progress-marker"></span>' +
       '<span class="story__progress-hint">Scroll down to case study</span>';
     document.body.appendChild(progress);
 
     const progressMarker = progress.querySelector('.story__progress-marker');
+    progress.querySelector('.story__progress-top').addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    });
+
+    // The trail is positioned once (not re-computed on every scroll tick,
+    // the way the old footer-docking logic below used to) so it truly
+    // holds its place while the line/marker animate beside it — a plain
+    // position:fixed box left alone already stays put across scroll, so
+    // there's nothing more to do per-frame once the position is set.
+    //
+    // That position is derived from two other elements' live geometry
+    // rather than fixed vh guesses, matching the left-hand rail it's meant
+    // to echo:
+    //  - bottom edge -> bottom of the hero's case description text (the
+    //    subtext under the big case title), so the line/marker/hint read
+    //    as bottom-aligned with that paragraph's baseline, not floating
+    //    independently.
+    //  - height -> the left-side .case-nav's own rendered height (the
+    //    01/02/03 stack + its gaps), so both vertical lines read as the
+    //    same length instead of one being CSS's 34vh guess.
+    // A ResizeObserver on both source elements — not just a window resize
+    // listener — re-measures whenever either one's box actually changes
+    // size, which covers a viewport resize but also a case switch: the
+    // hero's case description text differs in length per case (see CASES
+    // in main.js) and can wrap to a different number of lines, shifting
+    // its height independently of the viewport.
+    //
+    // A case switch's text swap (renderCase() in main.js) also drives a
+    // translateY/opacity transition on the title+desc themselves (see
+    // .is-switching in styles.css) that starts at the very same moment the
+    // text — and so the box height ResizeObserver reacts to — changes.
+    // getBoundingClientRect() reflects that transform mid-flight, so a
+    // measurement taken right as the resize fires can catch the description
+    // a few px off its resting position; re-measuring again on
+    // transitionend corrects it once the transform settles.
+    const heroDescEl = document.querySelector('.case-card__desc');
+    const heroTitleEl = document.querySelector('.case-card__title');
+    const caseNavEl = document.querySelector('.case-nav');
+    function positionTrail() {
+      if (!heroDescEl || !caseNavEl) return;
+      const descRect = heroDescEl.getBoundingClientRect();
+      const navHeight = caseNavEl.getBoundingClientRect().height;
+      progress.style.height = navHeight + 'px';
+      progress.style.top = (descRect.bottom - navHeight) + 'px';
+      progress.style.bottom = 'auto';
+    }
+    positionTrail();
+    const trailResizeObserver = new ResizeObserver(positionTrail);
+    [heroDescEl, heroTitleEl, caseNavEl].forEach(function (el) {
+      if (el) trailResizeObserver.observe(el);
+    });
+    if (heroDescEl) heroDescEl.addEventListener('transitionend', positionTrail);
+    if (heroTitleEl) heroTitleEl.addEventListener('transitionend', positionTrail);
+    // Belt-and-suspenders re-triggers: a webfont swap can reflow the case
+    // title/description after ResizeObserver's initial reading (e.g. if the
+    // font finishes loading after these elements already have a box) without
+    // firing resize or transitionend on them.
+    window.addEventListener('load', positionTrail);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(positionTrail);
+    }
 
     let raf = null;
     function update() {
       if (raf) return;
       raf = requestAnimationFrame(function () {
         raf = null;
+        const caseDetailEl = activeCaseDetailEl();
+        if (!caseDetailEl) return;
         const scrollY = window.scrollY || window.pageYOffset;
         const caseDetailRect = caseDetailEl.getBoundingClientRect();
-        const targetScrollY = Math.max(1, (caseDetailRect.bottom + scrollY) - window.innerHeight);
+        // Reference point for the fill target below: the EMAIL/LINKEDIN
+        // links themselves (.about-meta, reused from the About page — see
+        // index.html), not the whole footer row, so the marker's travel
+        // distance is pinned to that exact underline even if the footer's
+        // own box gains padding or the "next case study" column changes
+        // height. Falls back to the footer, then the section, if a case's
+        // footer is ever missing that markup.
+        const footerEl = caseDetailEl.querySelector('.case-detail__footer');
+        const footerLinksEl = footerEl ? footerEl.querySelector('.about-meta') : null;
+        const fillEndRect = (footerLinksEl || footerEl || caseDetailEl).getBoundingClientRect();
+        const targetScrollY = Math.max(1, (fillEndRect.bottom + scrollY) - window.innerHeight);
         const baseFrac = Math.min(1, Math.max(0, scrollY / targetScrollY));
 
         // While a pinned run is actively stepping, scrollY sits fixed at
@@ -259,6 +317,15 @@
         progressMarker.style.transform = 'translateY(-50%) translateY(' + (frac * trackHeightPx) + 'px)';
 
         progress.classList.toggle('is-visible', caseDetailRect.bottom > 0);
+        // Once the footer band has substantially entered the viewport, the
+        // line/marker's job — tracking progress through the still-scrolling
+        // middle of the page — is done, so drop them (see
+        // .story__progress.at-page-end in scroll-story.css); the vertical
+        // "Back to top" label itself stays, still governed by hero-covered
+        // below, so it keeps reading at the very bottom of the page.
+        const footerRect = footerEl ? footerEl.getBoundingClientRect() : null;
+        const footerInView = footerRect ? footerRect.top < window.innerHeight * 0.85 : false;
+        progress.classList.toggle('at-page-end', footerInView);
         // Swaps the off-white line/marker/hint to dark ink once white
         // background actually reaches the trail's own fixed on-screen
         // midpoint — not once the whole #story-pin wrapper has scrolled
@@ -277,6 +344,18 @@
         // every case (not just case 3's pin handoff, which cases 1/2 never
         // trigger).
         progress.classList.toggle('has-scrolled', scrollY > 0);
+        // "Back to top" only earns its place once the landing hero is
+        // completely covered by the case study — same handoff point
+        // nav-hidden below uses (#case-detail's top reaching the viewport
+        // top), not the first scroll tick.
+        progress.classList.toggle('hero-covered', caseDetailRect.top <= 0);
+
+        // Side nav sits fixed above everything (z-index 11) so it would
+        // otherwise float over the case study once #case-detail rises to
+        // cover the hero — hide it right at that handoff point (its top
+        // reaching the viewport top) and bring it back once the user
+        // scrolls back up past it.
+        document.body.classList.toggle('nav-hidden', caseDetailRect.top <= 0);
       });
     }
 
@@ -292,6 +371,7 @@
     const pinWrapper = config.pinWrapper;
     const mount = config.mount;
     const laptop = config.laptop;
+    const video = config.video;
     const screenshots = config.screenshots || [];
     const introScreens = (config.intro && config.intro.screens) || [];
     const hasIntro = introScreens.length > 0;
@@ -357,7 +437,6 @@
       el.className = 'story__mobile-block';
       el.innerHTML =
         mobileLaptopHTML(shotMap[section.screenshot]) +
-        captionHTML(section) +
         '<h3 class="story__flow-heading' + (section.plainHeading ? ' story__flow-heading--plain' : '') + '">' + section.heading + '</h3>' +
         '<p class="story__flow-body">' + section.body + '</p>' +
         calloutHTML(section.callout);
@@ -415,7 +494,6 @@
         return (
           '<div class="story__panel-block" data-index="' + i + '">' +
             (section.number ? '<span class="story__panel-number">' + section.number + '</span>' : '') +
-            '<p class="story__panel-kicker">' + section.kicker + '</p>' +
             '<h3 class="story__panel-heading' + (section.plainHeading ? ' story__panel-heading--plain' : '') + '">' + section.heading + '</h3>' +
             '<p class="story__panel-body">' + section.body + '</p>' +
             calloutHTML(section.callout) +
@@ -423,15 +501,11 @@
         );
       }).join('');
 
-      // One ordered list of screen frames spanning both beats, so the laptop
-      // screen crossfades continuously across the whole pinned run instead of
-      // resetting between the teaser and the full sections.
-      const frameShots = introScreens.map(function (s) { return shotMap[s.screenshot]; })
-        .concat(sections.map(function (s) { return shotMap[s.screenshot]; }));
-
-      const screenHTML = frameShots.map(function (shot, i) {
-        return '<img class="story__screen-frame" data-index="' + i + '" src="' + shot.src + '" alt="' + (shot.alt || '') + '">';
-      }).join('');
+      // The laptop screen plays a single looping walkthrough video rather
+      // than crossfading between per-step screenshots — it isn't tied to
+      // stepIndex at all, just runs continuously behind the stepped
+      // teaser/panel content.
+      const screenHTML = '<video class="story__screen-video" src="' + video + '" autoplay muted loop playsinline aria-hidden="true"></video>';
 
       overlay.innerHTML =
         (hasIntro ? '<div class="story__teaser">' + teaserHTML + '</div>' : '') +
@@ -442,7 +516,6 @@
 
       const teaserLines = overlay.querySelectorAll('.story__teaser-line');
       const panelBlocks = overlay.querySelectorAll('.story__panel-block');
-      const screenFrames = overlay.querySelectorAll('.story__screen-frame');
       const screenEl = overlay.querySelector('.story__screen');
 
       const totalSteps = introScreens.length + sections.length;
@@ -466,14 +539,13 @@
       let stepIndex = 0;
       let engaged = false;
       let lastStepTime = 0;
-      let lastEventTime = 0;
-      let gestureStepCount = 0;
+      let scrollAccum = 0;
       // Persists across separate wheel gestures (unlike lastStepTime's
-      // throttle window, which only spans MIN_STEP_INTERVAL_MS) until the
-      // pin is confirmed off-screen or the user reverses direction. 1 =
-      // mid-escape scrolling forward off the last step, -1 = mid-escape
-      // scrolling backward off the first step, null = not mid-escape (fresh
-      // approach or fully exited). See onWheel.
+      // MIN_STEP_INTERVAL_MS floor) until the pin is confirmed off-screen or
+      // the user reverses direction. 1 = mid-escape scrolling forward off
+      // the last step, -1 = mid-escape scrolling backward off the first
+      // step, null = not mid-escape (fresh approach or fully exited). See
+      // onWheel.
       let exitDirection = null;
 
       function renderStep(index) {
@@ -486,8 +558,6 @@
           panelBlocks.forEach(function (el, i) { el.classList.toggle('is-active', i === sectionIndex); });
           teaserLines.forEach(function (el) { el.classList.remove('is-active'); });
         }
-        screenFrames.forEach(function (el, i) { el.classList.toggle('is-active', i === index); });
-
         // Feeds the page-level progress marker (see activePinStep above) —
         // only while actively stepping, so it doesn't linger stale once the
         // interaction ends. The trail only recomputes on 'scroll'/'resize'
@@ -518,9 +588,21 @@
       // the hero scrolls away; the backward-exit path below still uses the
       // full setEngaged(false), which is safe there because the hero's
       // default screenshot already matches step 0.
+      //
+      // Also un-arms the pin wrapper (removes is-armed, drops the 100vh
+      // collapse) so the generic CSS-only pin-and-cover handoff — suppressed
+      // by is-armed for the duration of the step-through interaction, see
+      // the file-level comment — takes back over for the rest of the page,
+      // same as case studies 1/2. This runs synchronously in the same
+      // onWheel() call that triggers it, and the triggering event is not
+      // preventDefault()ed on this path, so the extra scroll runway this
+      // restores appears below the current viewport before native scroll
+      // applies that same event — no visual jump.
       function releaseForward() {
         engaged = false;
         activePinStep = null;
+        pinWrapper.classList.remove('is-armed');
+        pinWrapper.style.height = '';
       }
 
       function goToStep(next) {
@@ -529,14 +611,14 @@
       }
 
       // Two independent guards on engaged-branch step changes:
-      //  - lastStepTime / MIN_STEP_INTERVAL_MS: paces steps within a
-      //    gesture so they're readable, not one per wheel event.
-      //  - lastEventTime+gestureStepCount / GESTURE_SILENCE_MS+
-      //    MAX_STEPS_PER_GESTURE: bounds how far ONE gesture (no real pause
-      //    yet) can carry the story, so a single released flick's momentum
-      //    tail can't blow through an entire sequence — pacing alone doesn't
-      //    prevent that, since real momentum can keep feeding wheel events
-      //    well past what a single step should cost.
+      //  - scrollAccum / STEP_DISTANCE_PX: the primary pacing signal —
+      //    buffers |deltaY| and fires one step per STEP_DISTANCE_PX of
+      //    accumulated motion, so pacing tracks scroll distance rather than
+      //    event count or gesture duration.
+      //  - lastStepTime / MIN_STEP_INTERVAL_MS: a safety floor between
+      //    fired steps, so a device reporting one large deltaY per notch
+      //    can't clear the distance threshold several times within
+      //    milliseconds and fire multiple steps at once.
       // See the state-machine comment at the top of the file for the full
       // transition table this implements.
       //
@@ -550,11 +632,6 @@
       // re-engages immediately, landing back on the edge step it matches.
       function onWheel(e) {
         const now = performance.now();
-
-        if (now - lastEventTime > GESTURE_SILENCE_MS) {
-          gestureStepCount = 0;
-        }
-        lastEventTime = now;
 
         const wrapRect = pinWrapper.getBoundingClientRect();
         const fillsViewport = wrapRect.top <= 0 && wrapRect.top > -window.innerHeight && wrapRect.bottom > 0;
@@ -572,18 +649,15 @@
           if (Math.abs(wrapRect.top) > 0.5) window.scrollBy(0, wrapRect.top);
           setEngaged(true);
           lastStepTime = now;
-          gestureStepCount = 0;
+          scrollAccum = 0;
           stepIndex = e.deltaY > 0 ? 0 : totalSteps - 1;
           renderStep(stepIndex);
           return;
         }
 
-        if (now - lastStepTime < MIN_STEP_INTERVAL_MS) {
-          e.preventDefault();
-          return;
-        }
+        scrollAccum += Math.abs(e.deltaY);
 
-        if (gestureStepCount >= MAX_STEPS_PER_GESTURE) {
+        if (scrollAccum < STEP_DISTANCE_PX || now - lastStepTime < MIN_STEP_INTERVAL_MS) {
           e.preventDefault();
           return;
         }
@@ -591,26 +665,26 @@
         if (e.deltaY > 0) {
           if (stepIndex < totalSteps - 1) {
             e.preventDefault();
+            scrollAccum = 0;
             lastStepTime = now;
-            gestureStepCount++;
             goToStep(stepIndex + 1);
           } else {
+            scrollAccum = 0;
             releaseForward();
             exitDirection = 1;
             lastStepTime = now;
-            gestureStepCount++;
           }
         } else if (e.deltaY < 0) {
           if (stepIndex > 0) {
             e.preventDefault();
+            scrollAccum = 0;
             lastStepTime = now;
-            gestureStepCount++;
             goToStep(stepIndex - 1);
           } else {
+            scrollAccum = 0;
             setEngaged(false);
             exitDirection = -1;
             lastStepTime = now;
-            gestureStepCount++;
           }
         }
       }

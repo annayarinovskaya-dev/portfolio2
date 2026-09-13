@@ -2,60 +2,69 @@
   /* ORYZO design system — colors */
   --color-warm-cream: #ffedd7;
   --color-walnut-shadow: #100904;
-  --color-bark-brown: #7c1e1e;
   --color-cork-border: #4a1f1f;
   --color-driftwood: #c99494;
-  --color-ember-accent: #ffcece;
-  --color-pure-black: #000000;
   --color-brand-red: #7c1e1e;
-  --color-brand-red-soft: rgba(124, 30, 30, 0.42);
-  --color-brand-red-hover: rgba(124, 30, 30, 0.65);
-  --color-case-accent: #7d0000;
+  --color-case-accent: #7c1e1e;
   --color-off-white: #ffffff;
+  --color-image-stroke: rgba(16, 9, 4, 0.2);
+  --color-grey: #8c8c8c;
 
-  --font-serif: 'Marcellus', Georgia, 'Times New Roman', serif;
+  /* White text opacity hierarchy — for text sitting on dark/photo
+     backgrounds only (not backgrounds/borders, which keep --color-off-white). */
+  --text-primary: rgba(255, 255, 255, 1);    /* headlines, names, project titles */
+  --text-secondary: rgba(255, 255, 255, 0.7); /* subtitles, role labels, section labels, taglines */
+  --text-tertiary: rgba(255, 255, 255, 0.8);  /* small functional UI: hints, nav cues, footnotes, timestamps */
 
-  /* Glass surfaces */
-  --glass-bg: rgba(255, 237, 215, 0.3);
-  --glass-border: rgba(255, 237, 215, 0.4);
-  --glass-hover: rgba(255, 237, 215, 0.4);
-  --glass-blur: 40px;
-  --glass-text-shadow: 0 1px 12px rgba(255, 237, 215, 0.5);
+  --font-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-statement: 'Bodoni Moda', 'Cormorant Garamond', Georgia, serif;
+  --font-accent: 'Schibsted Grotesk', var(--font-display);
 
   /* Typography */
   --font-display: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-caption: Arial, system-ui, sans-serif;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
+  --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
-  --text-display: 51px;
   --leading-display: 0.9;
   --text-heading: 41px;
   --leading-heading: 0.9;
-  --text-heading-sm: 24px;
   --leading-heading-sm: 1.09;
-  --text-subheading: 18px;
-  --leading-subheading: 1;
-  --text-body: 29px;
-  --leading-body: 1.26;
   --outcome-label-size: clamp(20px, 1.9vw, 36px);
+
+  /* Body-copy "Detail" tier — quieter than the case-study lede/supporting
+     tiers, cork-border colored. Used for numbered-decision-list item
+     descriptions (Onboarding's key-decisions, Portfolio's Approach list)
+     and intro paragraphs (Portfolio's Exploration/Validation rows). Named
+     here because the same three numbers were previously duplicated ad hoc
+     across .case-detail__decision-body, .case-detail__overview-secondary,
+     .case-detail__columns p, and .case-detail__research-intro. */
+  --body-detail-size: clamp(15px, 1.1vw, 20px);
+  --leading-body-detail: 1.5;
+
+  /* Body-copy "Lead" and "Secondary" tiers — the prominent intro paragraph
+     of a two-part pair (dark, larger) and its dimmer supporting paragraph
+     (grey). Shared across every case study's Overview/Problem/Context intro
+     pairs and Research/Exploration/Validation lead-ins — previously
+     hand-copied as raw clamp() values in three separate places per tier. */
+  --body-lead-size: clamp(17px, 1.3vw, 23px);
+  --leading-body-lead: 1.5;
+  --body-secondary-size: clamp(15px, 1.35vw, 18px);
+  --leading-body-secondary: 1.6;
 
   /* Spacing */
   --spacing-6: 6px;
   --spacing-8: 8px;
-  --spacing-9: 9px;
   --spacing-10: 10px;
   --spacing-12: 12px;
-  --spacing-14: 14px;
   --spacing-18: 18px;
   --spacing-24: 24px;
   --spacing-31: 31px;
-  --spacing-41: 62px;
-  --spacing-45: 48px;
+  --spacing-48: 48px;
+  --spacing-62: 62px;
   --spacing-68: 68px;
-  --card-padding: 24px;
-  --element-gap: 18px;
+  --spacing-96: 96px;
 
   /* Radius */
   --radius-cards: 0px;
@@ -111,12 +120,34 @@ ul { list-style: none; margin: 0; padding: 0; }
 
 .hero__photo.is-loading { opacity: 0; }
 
-.hero__vignette {
+.hero__video {
+  /* Tune here to re-grade the composited screen content against the desk
+     photo's warmer, softer lighting — see .hero-video__grade below for the
+     matching overlay that carries the actual warm tint + vignette. */
+  --hero-video-filter: brightness(0.97) contrast(0.95) saturate(0.9);
+
   position: absolute;
   inset: 0;
-  z-index: -1;
-  background: rgba(16, 9, 4, 0.22);
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0;
+  filter: var(--hero-video-filter);
+  transition: opacity 0.5s ease;
   pointer-events: none;
+}
+
+.hero__video.is-visible { opacity: 1; }
+
+/* Portfolio Overview (case 2)'s composite sits against the same warm,
+   golden-amber curtain/desk scene as .hero-video__grade--portfolio above.
+   The Configurator default above reads slightly washed out there, so it's
+   recalibrated warmer/less saturated. Toggled by hero-video-overlay.js's
+   positionHitbox() via .is-portfolio-grade on .hero. */
+.hero.is-portfolio-grade .hero__video {
+  --hero-video-filter: brightness(0.97) contrast(0.95) saturate(0.92);
 }
 
 .hero__screen {
@@ -133,6 +164,496 @@ ul { list-style: none; margin: 0; padding: 0; }
   opacity: 1;
 }
 
+/* Case 3's screen content: sized/positioned in JS (positionScreenVideo() in
+   main.js) to cover the whole hero exactly like a full-bleed case video,
+   then clip-path'd down to just the screen's quad so the real photo shows
+   through everywhere else (bezel, keyboard, desk, background). The video
+   itself is already perspective-warped (see scratchpad/composite_onboarding.py)
+   so its content matches the photographed screen's tilt, not just a
+   straight clip. The recording is a crisp, evenly-lit screen capture; the
+   photo behind it is a warm, sunlit desk scene, so a subtle filter is
+   applied directly here to knock down brightness/contrast/saturation and
+   shift it toward the same beige/honey cast — see .hero__screen-video-grade
+   below for the matching soft-light overlay that reinforces that warmth. */
+.hero__screen-video {
+  position: absolute;
+  z-index: 1;
+  overflow: hidden;
+  object-fit: cover;
+  background: #e4e4e0;
+  opacity: 0;
+  filter: brightness(0.93) contrast(0.94) saturate(0.82) sepia(0.08);
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.hero__screen-video.is-visible {
+  opacity: 1;
+}
+
+/* Warm color-grade for the screen video: a soft-light tint + vignette,
+   positioned/clipped from the exact same rect and clip-path as
+   .hero__screen-video (see positionScreenVideo() in main.js, which sets
+   both elements' geometry from one shared computation so they can't drift
+   out of registration) rather than an independent, unwarped rectangle.
+   Tint values sampled from the desk photo's beige wall and wood tones. */
+.hero__screen-video-grade {
+  position: absolute;
+  z-index: 2;
+  background:
+    radial-gradient(
+      120% 120% at 50% 50%,
+      rgba(0, 0, 0, 0) 55%,
+      rgba(30, 22, 14, 0.12) 100%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(196, 168, 138, 0.22) 0%,
+      rgba(196, 168, 138, 0.09) 45%,
+      rgba(196, 168, 138, 0) 100%
+    );
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.hero__screen-video-grade.is-visible {
+  opacity: 1;
+}
+
+/* ---------- HERO VIDEO OVERLAY ---------- */
+/* Hover/tap overlay scoped to just the "screen" rect of whichever case's
+   video mockup is active (the monitor/laptop glass, not the desk/bezel
+   around it) — positioned in JS (hero-video-overlay.js) via the same
+   LaptopMockup.computeScreenRect() cover-fit math used for .hero__screen,
+   against per-case rects measured from each video's native 1920x1080
+   frame. Disabled below the 980px breakpoint, matching .hero__screen's
+   existing opt-out there (the cover-fit math assumes a centered crop,
+   which no longer holds once mobile shifts object-position). */
+
+.hero-video__hitbox {
+  position: absolute;
+  z-index: 2;
+}
+
+/* Color-grade overlay: sits directly on top of the video, clipped in JS
+   (hero-video-overlay.js, same call as .hero-video__scrim below) to the
+   exact same quad/rect as the video's screen area, so it's registered to
+   the skewed monitor glass with no transform math duplicated here. All the
+   tunable knobs live in this one block — adjust these to live-iterate the
+   warmth/strength without touching the clip-path or positioning logic. */
+.hero-video__grade {
+  --grade-tint: 196, 168, 138; /* warm tan/beige sampled from the desk/wall behind the monitor */
+  --grade-tint-strength: 0.12; /* tint opacity at the 135deg gradient's start (top-left) */
+  --grade-tint-fade: 0.04; /* tint opacity at the 40% stop, fading out before the vignette */
+  --grade-vignette: 20, 20, 20; /* vignette color, darkening toward all four corners */
+  --grade-vignette-strength: 0.10; /* vignette opacity at the corners */
+  --grade-vignette-reach: 55%; /* how far the vignette stays fully transparent before darkening in */
+
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      120% 120% at 50% 50%,
+      rgba(0, 0, 0, 0) var(--grade-vignette-reach),
+      rgba(var(--grade-vignette), var(--grade-vignette-strength)) 100%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(var(--grade-tint), var(--grade-tint-strength)) 0%,
+      rgba(var(--grade-tint), var(--grade-tint-fade)) 40%,
+      rgba(var(--grade-tint), 0) 100%
+    );
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+/* Portfolio Overview (case 2) grade: this scene's laptop sits against a
+   golden-amber curtain + wood desk, warmer and more saturated than the
+   Configurator's tan wall, and its screen has a near-black-green sidebar
+   rail (~9% of the screen width, measured on the composite's native frame)
+   that would muddy toward brown under the same tint strength used over the
+   white content panel. So the warmth is split into two horizontal zones
+   instead of one flat diagonal gradient: a restrained tint over the
+   sidebar, a fuller one over the content panel. Also has no `quad` in
+   SCREEN_RECTS (js/hero-video-overlay.js) — the laptop is shot near
+   head-on with negligible lid skew, so the shared .hero-video__grade rect
+   needs no extra keystone/perspective transform, just this background
+   override. Toggled onto the shared .hero-video__grade element by
+   positionHitbox() in hero-video-overlay.js whenever case 2 is active. */
+.hero-video__grade--portfolio {
+  --grade-tint-sidebar: 168, 150, 112; /* muted honey, kept light so the dark green rail doesn't shift brown */
+  --grade-tint-sidebar-strength: 0.05;
+  --grade-tint-content: 214, 166, 104; /* golden-amber sampled from the curtain/wood behind the laptop */
+  --grade-tint-content-strength: 0.17; /* tint opacity where the content-panel zone starts */
+  --grade-tint-content-fade: 0.05; /* tint opacity at the 60% stop, fading out before the right edge */
+  --grade-sidebar-edge: 9%; /* sidebar/content boundary measured on the composite's screen rect */
+  --grade-vignette: 46, 30, 14; /* warm dark-amber vignette, rather than neutral, to match the golden light */
+  --grade-vignette-strength: 0.13;
+  --grade-vignette-reach: 52%;
+
+  background:
+    radial-gradient(
+      120% 120% at 50% 50%,
+      rgba(0, 0, 0, 0) var(--grade-vignette-reach),
+      rgba(var(--grade-vignette), var(--grade-vignette-strength)) 100%
+    ),
+    linear-gradient(
+      to right,
+      rgba(var(--grade-tint-sidebar), var(--grade-tint-sidebar-strength)) 0%,
+      rgba(var(--grade-tint-sidebar), var(--grade-tint-sidebar-strength)) var(--grade-sidebar-edge),
+      rgba(var(--grade-tint-content), var(--grade-tint-content-strength)) calc(var(--grade-sidebar-edge) + 2%),
+      rgba(var(--grade-tint-content), var(--grade-tint-content-fade)) 60%,
+      rgba(var(--grade-tint-content), 0) 100%
+    );
+}
+
+.hero-video__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(16, 9, 4, 0.15);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+.hero-video__hitbox:hover .hero-video__scrim {
+  opacity: 1;
+}
+
+.hero-video__controls {
+  position: absolute;
+  right: var(--spacing-12);
+  bottom: var(--spacing-12);
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-8);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+.hero-video__hitbox:hover .hero-video__controls,
+.hero-video__controls:focus-within {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Frame scrubber (prev/indicator/next): a horizontal pill, only relevant
+   once a frame is paused, so it's absent (not just faded) the rest of the
+   time — an empty bordered box would otherwise peek out next to the
+   always-present actions pill below. */
+.hero-video__scrubber {
+  display: none;
+  align-items: stretch;
+  background: rgba(16, 9, 4, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.hero.is-video-paused .hero-video__scrubber {
+  display: flex;
+}
+
+/* Pause/expand: a horizontal pill, separate from the scrubber's row so it
+   reads as a fixed corner control independent of whether the scrubber is
+   showing. */
+.hero-video__actions {
+  display: flex;
+  flex-direction: row;
+  background: rgba(16, 9, 4, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.hero-video__btn,
+.hero-video__arrow {
+  width: 32px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.hero-video__scrubber > *:not(:first-child) {
+  border-left: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.hero-video__actions > *:not(:first-child) {
+  border-left: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+/* Driftwood hover bg is light — bump back to full-strength text so the icon
+   doesn't drop further below the already-tight contrast against it. */
+.hero-video__btn:hover,
+.hero-video__arrow:hover {
+  background: var(--color-driftwood);
+  color: var(--text-primary);
+}
+
+.hero-video__arrow:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+  background: transparent;
+}
+
+.hero-video__indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--spacing-8);
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+/* Icons — hand-drawn with borders/pseudo-elements, matching .side-tab__arrow
+   rather than pulling in an icon set. */
+
+.hero-video__icon { display: block; }
+.hero-video__icon[hidden] { display: none; }
+
+.hero-video__icon--play {
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 9px solid currentColor;
+}
+
+.hero-video__icon--pause {
+  position: relative;
+  width: 9px;
+  height: 11px;
+}
+
+.hero-video__icon--pause::before,
+.hero-video__icon--pause::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 3px;
+  height: 11px;
+  background: currentColor;
+}
+
+.hero-video__icon--pause::before { left: 0; }
+.hero-video__icon--pause::after { right: 0; }
+
+.hero-video__icon--expand {
+  position: relative;
+  width: 12px;
+  height: 12px;
+}
+
+.hero-video__icon--expand::before,
+.hero-video__icon--expand::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border: 1px solid currentColor;
+}
+
+.hero-video__icon--expand::before {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+}
+
+.hero-video__icon--expand::after {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+}
+
+.hero-video__icon--chevron {
+  width: 8px;
+  height: 8px;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+}
+
+.hero-video__arrow--prev .hero-video__icon--chevron { transform: rotate(-135deg); }
+.hero-video__arrow--next .hero-video__icon--chevron { transform: rotate(45deg); }
+
+.hero-video__icon--close {
+  position: relative;
+  width: 14px;
+  height: 14px;
+}
+
+.hero-video__icon--close::before,
+.hero-video__icon--close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+}
+
+.hero-video__icon--close::before { transform: translateY(-50%) rotate(45deg); }
+.hero-video__icon--close::after { transform: translateY(-50%) rotate(-45deg); }
+
+/* Touch: no hover, so keep controls always visible but subdued instead of
+   requiring a tap-to-reveal step. (Phones fall under the 980px breakpoint
+   below, where the hitbox is disabled entirely — this mainly covers wider
+   touch devices like tablets/touch laptops.) */
+@media (hover: none) {
+  .hero-video__scrim {
+    opacity: 0.6;
+  }
+  .hero-video__controls {
+    opacity: 0.7;
+    pointer-events: auto;
+  }
+  .hero.is-video-paused .hero-video__scrim,
+  .hero.is-video-paused .hero-video__controls {
+    opacity: 1;
+  }
+}
+
+/* ---------- VIDEO LIGHTBOX ---------- */
+
+.video-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-lightbox[hidden] { display: none; }
+
+.video-lightbox__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(16, 9, 4, 0.9);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.video-lightbox.is-visible .video-lightbox__backdrop {
+  opacity: 1;
+}
+
+.video-lightbox__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-18);
+  max-width: 90vw;
+  max-height: 90vh;
+  padding: var(--spacing-24);
+  background: var(--color-walnut-shadow);
+  border: 2px solid var(--color-case-accent);
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.video-lightbox--image .video-lightbox__content {
+  border-color: transparent;
+}
+
+.video-lightbox.is-visible .video-lightbox__content {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.video-lightbox__stage {
+  /* Fixed frame so the lightbox doesn't resize between slides whose source
+     screenshots have different native aspect ratios (e.g. a 16:9 export
+     next to a 3:2 one) — each slide letterboxes to fit instead of the
+     whole box jumping size when stepping through the sequence. */
+  width: min(84vw, 1200px);
+  aspect-ratio: 16 / 9;
+  max-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-lightbox__video,
+.video-lightbox__image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.video-lightbox__video[hidden],
+.video-lightbox__image[hidden] { display: none; }
+
+.video-lightbox__close {
+  position: absolute;
+  top: var(--spacing-12);
+  right: var(--spacing-12);
+  z-index: 2;
+  width: 36px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  transition: color 0.2s ease;
+}
+
+.video-lightbox__close:hover { color: var(--color-driftwood); }
+
+.video-lightbox__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-18);
+}
+
+.video-lightbox__indicator {
+  min-width: 56px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-tertiary);
+}
+
+.video-lightbox__controls .hero-video__arrow {
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-video__scrim,
+  .hero-video__controls,
+  .hero-video__arrow,
+  .hero-video__indicator,
+  .video-lightbox__backdrop,
+  .video-lightbox__content {
+    transition: none;
+  }
+
+  .intro__name,
+  .intro__role,
+  .about,
+  .about-heading,
+  .about-lead,
+  .about-portrait,
+  .about-meta {
+    transition: none;
+  }
+}
+
 /* ---------- TOP-LEFT INTRO ---------- */
 
 .intro {
@@ -143,12 +664,25 @@ ul { list-style: none; margin: 0; padding: 0; }
   z-index: 11;
   max-width: 600px;
   height: 100px;
-  padding: 0 var(--spacing-45);
+  padding: 0 var(--spacing-48);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-end;
   text-align: right;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Hidden once #case-detail has risen to fully cover the hero (see
+   initProgressTrail() in scroll-story.js) — same handoff point as
+   .side-nav, otherwise this fixed header would float above the case
+   study content. */
+body.nav-hidden .intro {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .intro__name,
@@ -158,20 +692,43 @@ ul { list-style: none; margin: 0; padding: 0; }
   font-weight: var(--font-weight-regular);
   line-height: 1.2;
   letter-spacing: normal;
-  color: var(--color-off-white);
+  color: var(--text-primary);
   white-space: nowrap;
-  transition: font-size 0.5s ease;
+  transition: font-size 0.7s cubic-bezier(.33, 1, .68, 1);
 }
 
 .intro__role {
-  opacity: 0.7;
+  color: var(--text-secondary);
 }
 
 .intro__name {
   font-family: var(--font-serif);
-  font-size: 18px;
+  font-size: 24px;
   line-height: 1.15;
+  letter-spacing: -0.01em;
   margin-bottom: 2px;
+}
+
+/* .about can scroll internally at narrow viewports (see the mobile
+   overflow-y:auto below), but .intro/.side-nav stay position:fixed above
+   it — without an opaque backing here, the panel's own scrolled bio text
+   passes underneath and shows straight through, double-exposed with the
+   header. A full-width bar (rather than just .intro/.side-nav's own
+   content-sized boxes, which don't span the gap between them) painted the
+   same red the panel already sits on makes the header correctly occlude
+   whatever scrolls behind it, at every viewport (a no-op wherever nothing
+   needs to scroll underneath). */
+/* Attached to .intro rather than .side-nav: .intro comes first in the
+   markup, so this bar paints (and its own name/role text repaints over it)
+   before .side-nav's "Close" — putting it on the later element would have
+   this opaque bar paint on top of .intro's text instead of behind it. */
+body.about-open .intro::before {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  inset: 0 0 auto 0;
+  height: 100px;
+  background: var(--color-brand-red);
 }
 
 body.about-open .intro {
@@ -192,7 +749,7 @@ body.about-open .intro__role {
 .side-nav {
   position: fixed;
   top: 0;
-  left: var(--spacing-45);
+  left: var(--spacing-48);
   right: auto;
   z-index: 11;
   height: 100px;
@@ -200,6 +757,18 @@ body.about-open .intro__role {
   flex-direction: column;
   justify-content: center;
   gap: var(--spacing-8);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Hidden once #case-detail has risen to fully cover the hero (see
+   initProgressTrail() in scroll-story.js) — otherwise the fixed nav would
+   float above the case study content. */
+body.nav-hidden .side-nav {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .side-tab {
@@ -207,36 +776,52 @@ body.about-open .intro__role {
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--color-off-white);
+  color: var(--text-primary);
   background: transparent;
   border: none;
   padding: 0;
   transition: color 0.2s ease;
 }
 
+/* position:relative + inline-block (not flex) so the container's height is
+   driven only by .side-tab__text — the arrow is positioned absolutely (below
+   in "About", beside in "Close") and never contributes to that height. Doing
+   this any other way (e.g. flex-direction: column -> row) changes the
+   container's own height between states, and since .side-nav vertically
+   centers this single child, a height change drags the "About"/"Close" text
+   to a different y — text position stays fixed only because height doesn't. */
 .side-tab--about {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1px;
+  position: relative;
+  display: inline-block;
   transform: translateY(11px);
-  transition: gap 0.3s ease;
 }
 
-body.about-open .side-tab--about {
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
+.side-tab__text {
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+}
+
+body.about-open .side-tab__text {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .side-tab__arrow {
-  position: relative;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 1px;
   width: 56px;
   height: 18px;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, left 0.3s ease, top 0.3s ease,
+              margin-top 0.3s ease, transform 0.3s ease;
 }
 
 body.about-open .side-tab__arrow {
+  top: 50%;
+  left: calc(100% + 7px);
+  margin-top: 0;
+  transform: translateY(-50%);
   width: 14px;
 }
 
@@ -251,13 +836,11 @@ body.about-open .side-tab__arrow {
   background: currentColor;
   transform: translateY(-50%);
   transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-.side-tab__arrow::after {
   opacity: 0;
 }
 
 body.about-open .side-tab__arrow::before {
+  opacity: 1;
   transform: translateY(-50%) rotate(45deg);
 }
 
@@ -266,12 +849,8 @@ body.about-open .side-tab__arrow::after {
   transform: translateY(-50%) rotate(-45deg);
 }
 
-.side-tab:hover {
-  color: var(--color-driftwood);
-}
-
 body.about-open .side-tab {
-  color: var(--color-off-white);
+  color: var(--text-primary);
 }
 
 /* ---------- CASE CARD (full-hero overlay wrapper) ---------- */
@@ -283,11 +862,46 @@ body.about-open .side-tab {
   pointer-events: none;
 }
 
+/* ---------- SHARED HOVER-FILL (top-down maroon wipe: 01/02/03 tabs + ABOUT label) ---------- */
+
+.hover-fill {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.hover-fill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(139, 40, 40, 0.85);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 280ms ease;
+  /* isolation above creates a fresh stacking context, so a negative
+     z-index here paints before this element's own (in-flow) text —
+     no extra wrapper span needed to keep the label readable on top. */
+  z-index: -1;
+}
+
+.hover-fill:not(.is-active):hover::before {
+  transform: scaleY(1);
+}
+
+.about-label {
+  padding: 4px 8px;
+  transition: border-color 280ms ease;
+}
+
+.about-label:hover {
+  border-bottom-color: transparent;
+}
+
 /* ---------- CASE NAV (vertical 01 02 03) ---------- */
 
 .case-nav {
   position: absolute;
-  left: var(--spacing-45);
+  left: var(--spacing-48);
   top: 33.08vh;
   pointer-events: none;
 }
@@ -315,7 +929,7 @@ body.about-open .side-tab {
   font-size: 12px;
   font-weight: var(--font-weight-regular);
   letter-spacing: normal;
-  color: var(--color-off-white);
+  color: var(--text-secondary);
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
@@ -336,31 +950,32 @@ body.about-open .side-tab {
   justify-content: center;
   background: transparent;
   border: 1px solid var(--color-off-white);
-  color: var(--color-off-white);
+  color: var(--text-tertiary);
   font-family: var(--font-display);
   font-size: 24px;
   font-weight: var(--font-weight-medium);
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, border-color 280ms ease;
 }
 
-.case-tab:hover {
-  background: var(--color-driftwood);
-  border-color: var(--color-driftwood);
-  color: var(--color-off-white);
+.case-tab.hover-fill:not(.is-active):hover {
+  border-color: transparent;
 }
 
+/* Kept at full strength (not tertiary) — needs max contrast against the
+   solid red active background rather than the hierarchy tier that would
+   otherwise apply to a nav tab. */
 .case-tab.is-active {
   background: var(--color-brand-red);
   border-color: var(--color-brand-red);
-  color: var(--color-off-white);
+  color: var(--text-primary);
 }
 
 /* ---------- CASE TITLE + DESCRIPTION (bottom-left) ---------- */
 
 .case-card__bottom {
   position: absolute;
-  left: var(--spacing-45);
-  right: var(--spacing-45);
+  left: var(--spacing-48);
+  right: var(--spacing-48);
   bottom: 5.45vh;
   pointer-events: none;
 }
@@ -373,7 +988,8 @@ body.about-open .side-tab {
   line-height: 0.95;
   letter-spacing: -0.02em;
   text-transform: uppercase;
-  color: var(--color-off-white);
+  color: var(--text-primary);
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .case-card__desc {
@@ -381,35 +997,96 @@ body.about-open .side-tab {
   font-size: clamp(14px, 1.05vw, 21px);
   font-weight: var(--font-weight-regular);
   line-height: 1.4;
-  color: var(--color-off-white);
-  max-width: 27vw;
+  color: var(--text-secondary);
+  max-width: 35vw;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.case-card__title.is-switching,
+.case-card__desc.is-switching {
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 /* ---------- ABOUT ---------- */
 
+/* The red screen slides down from above like a blind being drawn — the
+   same top-covers-bottom idea as #case-detail rising from below to cover
+   the pinned hero (see .case-detail in scroll-story.css), just mirrored:
+   here the panel drops in from the top instead of rising from the bottom.
+   Sequence: name zoom (.intro__name font-size, above) and the red panel's
+   slide start together, on the same gentle ease-out-cubic curve and
+   duration as the name, so the zoom hands off into the slide as one
+   unhurried, continuous motion instead of the name settling and then the
+   panel starting from rest -> content follows once the panel has mostly
+   settled (staggered delays below). */
 .about {
   position: fixed;
   inset: 0;
   z-index: 10;
-  padding: var(--spacing-45);
+  padding: var(--spacing-48);
   background: var(--color-brand-red);
   color: var(--color-warm-cream);
-  opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform: translateY(24px);
-  transition: opacity 0.4s ease, transform 0.4s ease, visibility 0s 0.4s;
+  transform: translateY(-100%);
+  /* ease-in-out rather than the open's ease-out: matching ease-out here
+     would yank the panel upward abruptly the instant you click close
+     (fast start) before gently trailing off — ease-in-out eases into the
+     motion first, so the retreat reads as smooth rather than rushed. */
+  transition: transform 0.6s cubic-bezier(.65, 0, .35, 1), visibility 0s 0.6s;
 }
 
 body.about-open .about {
-  opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transform: translateY(0);
-  transition: opacity 0.4s ease, transform 0.4s ease, visibility 0s;
+  transition: transform 0.7s cubic-bezier(.33, 1, .68, 1), visibility 0s;
 }
 
 body.about-open { overflow: hidden; }
+
+/* Content waits for the red screen (.about's translateY slide, above) to
+   mostly fill the viewport before it starts appearing, then reveals itself
+   heading -> portrait -> lead -> meta via staggered transition-delays. On
+   close, everything drops the delay and fades out quickly (golden rule:
+   exits faster than enters) ahead of the red screen sliding back up. */
+.about-heading,
+.about-lead,
+.about-portrait,
+.about-meta {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.2s ease-in, transform 0.2s ease-in;
+}
+
+body.about-open .about-heading {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.45s cubic-bezier(.33, 1, .68, 1) 0.55s,
+              transform 0.45s cubic-bezier(.33, 1, .68, 1) 0.55s;
+}
+
+body.about-open .about-portrait {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s cubic-bezier(.33, 1, .68, 1) 0.63s,
+              transform 0.5s cubic-bezier(.33, 1, .68, 1) 0.63s;
+}
+
+body.about-open .about-lead {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.45s cubic-bezier(.33, 1, .68, 1) 0.7s,
+              transform 0.45s cubic-bezier(.33, 1, .68, 1) 0.7s;
+}
+
+body.about-open .about-meta {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.4s cubic-bezier(.33, 1, .68, 1) 0.8s,
+              transform 0.4s cubic-bezier(.33, 1, .68, 1) 0.8s;
+}
 
 .about-heading {
   position: relative;
@@ -420,10 +1097,11 @@ body.about-open { overflow: hidden; }
 
 .about-heading h1 {
   margin: 0;
-  font-size: clamp(26px, 2.55vw, 40px);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.08;
-  letter-spacing: -0.045em;
+  font-size: clamp(22px, 1.8vw, 28px);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.5;
+  letter-spacing: normal;
+  color: var(--text-primary);
 }
 
 .about-lead {
@@ -431,20 +1109,26 @@ body.about-open { overflow: hidden; }
   z-index: 2;
   max-width: min(680px, 51vw);
   margin: 34px 0 0 3vw;
-  font-size: clamp(26px, 2.55vw, 40px);
-  line-height: 1.08;
-  letter-spacing: -0.045em;
-  color: var(--color-warm-cream);
+  font-size: clamp(22px, 1.8vw, 28px);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.5;
+  letter-spacing: normal;
+  color: #ffffff;
 }
 
+/* top-anchored to match .about-heading's own top offset (padding + its
+   190px margin), and stretched to bottom:0 so it runs to the bottom edge
+   of the panel. left:58vw lines its left edge up with .intro__name's left
+   edge (measured ~839px of 1440px viewport width); right matches the
+   panel's standard content margin, same as .about-meta/.about-heading. */
 .about-portrait {
   position: absolute;
   z-index: 1;
-  right: 7vw;
+  left: 58vw;
+  right: var(--spacing-48);
+  top: calc(var(--spacing-48) + 190px);
   bottom: 0;
   margin: 0;
-  width: min(32vw, 480px);
-  height: 46vh;
 }
 
 .about-portrait img {
@@ -458,27 +1142,85 @@ body.about-open { overflow: hidden; }
 .about-meta {
   position: absolute;
   z-index: 3;
-  left: var(--spacing-45);
-  bottom: var(--spacing-45);
+  /* +8px matches .about-label's own left padding, so this lines up with
+     the "Close" text above rather than the side-nav's outer edge. */
+  left: calc(var(--spacing-48) + 8px);
+  bottom: var(--spacing-48);
   display: flex;
   gap: 72px;
 }
 
 .about-meta a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 14px;
   font-weight: var(--font-weight-medium);
   text-transform: uppercase;
   letter-spacing: normal;
-  color: var(--color-warm-cream);
-  border-bottom: 1px solid var(--color-warm-cream);
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--text-tertiary);
   padding-bottom: 2px;
+  transition: color 0.2s ease;
+}
+
+.about-meta a:hover {
+  color: var(--color-driftwood);
+}
+
+/* Hand-drawn to a 1px stroke so its weight matches the 1px underline above
+   exactly - a text "↗" glyph renders heavier than that at this size. */
+.about-meta__arrow {
+  position: relative;
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+}
+
+.about-meta__arrow::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 9px;
+  height: 1px;
+  background: currentColor;
+  transform-origin: left bottom;
+  transform: rotate(-45deg);
+}
+
+.about-meta__arrow::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 6px;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
 }
 
 /* ---------- CASE DETAIL (full write-up, normal flow after #story) ---------- */
 
 .case-detail {
+  display: none;
   background: var(--color-off-white);
-  padding: var(--spacing-68) calc(var(--spacing-45) + 56px) calc(var(--spacing-68) * 2) var(--spacing-45);
+  /* Exposed as custom properties (rather than only baked into the shorthand
+     below) so full-bleed band sections nested inside — see the Configurator
+     case study's Design Evolution / Impact overrides — can cancel exactly
+     this padding with a matching negative margin at any viewport. */
+  --case-pad-l: var(--spacing-48);
+  --case-pad-r: calc(var(--spacing-48) + 56px);
+  /* No bottom padding here — .case-detail__footer supplies its own
+     symmetric top/bottom padding around the footer band itself, and the
+     footer is always the section's last child, so its own bottom padding
+     is the page's true end. Padding here would stack on top of that and
+     leave a dead gap below the footer band. */
+  padding: var(--spacing-68) var(--case-pad-r) 0 var(--case-pad-l);
+}
+
+.case-detail.is-active {
+  display: block;
 }
 
 .case-detail__inner {
@@ -486,7 +1228,8 @@ body.about-open { overflow: hidden; }
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing-68) * 2);
+  /* 220px inter-section rhythm, shared by all three case studies. */
+  gap: 220px;
 }
 
 .case-detail__heading {
@@ -495,31 +1238,11 @@ body.about-open { overflow: hidden; }
   font-size: clamp(28px, 4vw, 56px);
   font-weight: var(--font-weight-medium);
   line-height: 1.05;
+  letter-spacing: -0.01em;
   color: var(--color-walnut-shadow);
 }
 
 /* ---------- META ROW ---------- */
-
-.case-detail__meta {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: var(--spacing-41);
-}
-
-.case-detail__meta-col--team {
-  grid-column: 2;
-}
-
-/* Absolutely positioned so it can sit at the exact midpoint between
-   Timeline (track 1, left: 0) and Team (track 2, left: (100% + gap) / 3) —
-   no grid line falls there, since the gap between tracks isn't itself a
-   track. left: (100% + gap) / 6 is that midpoint's x half of Team's. */
-.case-detail__meta-col--scope {
-  position: absolute;
-  top: 0;
-  left: calc((100% + var(--spacing-41)) / 6);
-}
 
 .case-detail__meta-col {
   display: flex;
@@ -528,13 +1251,13 @@ body.about-open { overflow: hidden; }
 }
 
 .case-detail__meta-label {
-  font-size: 14px;
+  font-size: var(--body-detail-size);
   font-weight: var(--font-weight-regular);
   color: var(--color-walnut-shadow);
 }
 
 .case-detail__meta-value {
-  font-size: 14px;
+  font-size: var(--body-detail-size);
   font-weight: var(--font-weight-regular);
   color: var(--color-cork-border);
 }
@@ -548,31 +1271,49 @@ body.about-open { overflow: hidden; }
 .case-detail__row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: var(--spacing-41);
-  row-gap: var(--spacing-45);
+  column-gap: var(--spacing-62);
+  row-gap: var(--spacing-48);
   align-items: baseline;
 }
 
 .case-detail__label {
   grid-column: 1;
   margin: 0;
-  font-family: var(--font-serif);
-  font-weight: var(--font-weight-regular);
-  font-size: var(--text-heading);
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-semibold);
+  font-size: 12px;
   line-height: var(--leading-heading);
   text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: var(--color-walnut-shadow);
+  letter-spacing: 0.1em;
+  color: var(--color-case-accent);
 }
 
 .case-detail__columns {
   display: contents;
 }
 
+/* Force the two children into columns 2 and 3 explicitly — without this,
+   auto-placement lands them wherever the grid cursor happens to be (e.g.
+   column 1, under the section label) whenever a full-width row like the
+   intro heading precedes them. */
+.case-detail__columns > *:nth-child(1) {
+  grid-column: 2;
+}
+
+.case-detail__columns > *:nth-child(2) {
+  grid-column: 3;
+}
+
+.case-detail__columns > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-18);
+}
+
 .case-detail__columns p {
   margin: 0;
-  font-size: clamp(15px, 1.1vw, 20px);
-  line-height: 1.5;
+  font-size: var(--body-detail-size);
+  line-height: var(--leading-body-detail);
   color: var(--color-cork-border);
 }
 
@@ -580,6 +1321,44 @@ body.about-open { overflow: hidden; }
 
 .case-detail__goal-content {
   display: contents;
+}
+
+/* ---- Goal band: full-bleed accent band, statement left / grid right. Shared
+   component — apply `.case-detail__row--goal` to any row that needs a
+   principle statement called out this way, not just case 3. ---- */
+
+.case-detail__row--goal {
+  display: block;
+  margin-inline: calc(-1 * var(--case-pad-l)) calc(-1 * var(--case-pad-r));
+  padding: clamp(80px, 15vh, 170px) var(--case-pad-r) clamp(80px, 15vh, 170px) var(--case-pad-l);
+  background: var(--color-case-accent);
+}
+
+.case-detail__row--goal .case-detail__goal-content {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: var(--spacing-62);
+  row-gap: var(--spacing-48);
+  align-items: start;
+}
+
+.case-detail__row--goal .case-detail__goal-intro {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+}
+
+.case-detail__row--goal .case-detail__label {
+  color: var(--text-primary);
+}
+
+.case-detail__row--goal .case-detail__principle {
+  grid-column: auto;
+  max-width: none;
+  font-family: var(--font-statement);
+  font-weight: var(--font-weight-regular);
+  color: var(--text-primary);
 }
 
 .case-detail__bullets {
@@ -619,13 +1398,49 @@ body.about-open { overflow: hidden; }
   color: var(--color-case-accent);
 }
 
+.case-detail__goal-grid {
+  grid-column: 2 / 4;
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: var(--spacing-18);
+}
+
+.case-detail__goal-item {
+  margin: 0;
+  padding-top: var(--spacing-12);
+  border-top: 1px solid var(--color-image-stroke);
+  font-size: clamp(15px, 1.1vw, 20px);
+  line-height: 1.4;
+  color: var(--color-cork-border);
+}
+
+.case-detail__row--goal .case-detail__goal-item {
+  position: relative;
+  border-top: none;
+  padding-top: 0;
+  padding-left: 20px;
+  color: var(--text-primary);
+}
+
+/* Small square marker echoing .story__progress-marker's rectangular
+   scroll-line dot, so the two motifs read as the same visual language. */
+.case-detail__row--goal .case-detail__goal-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 5px;
+  height: 5px;
+  background: var(--color-off-white);
+}
+
 /* ---------- APPROACH ---------- */
 
 .case-detail__decisions {
   grid-column: 2 / 4;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-68);
+  gap: var(--spacing-96);
   margin: 0;
   padding: 0;
 }
@@ -636,20 +1451,137 @@ body.about-open { overflow: hidden; }
   gap: var(--spacing-12);
 }
 
+/* ---------- DESIGN EVOLUTION MODULE ----------
+   Shared numbered-list module: originally Configurator's Design Evolution
+   (V0/V1/V2), now reused as-is by Portfolio's Final Solution and
+   Onboarding's Approach — apply `.case-detail__row--evolution` to any row
+   that needs this "big serial numeral + label, text left / screenshot
+   right, hairline rule above the text, caption below the image" pattern.
+   The row itself drops out of the shared 3-column .case-detail__row grid
+   (label stacks above the content instead of beside it). */
+.case-detail__row--evolution {
+  display: block;
+}
+
+.case-detail__row--evolution .case-detail__label {
+  margin: 0 0 clamp(28px, 5vh, 56px);
+}
+
+.case-detail__decisions {
+  gap: var(--spacing-68);
+}
+
+.case-detail__row--evolution .case-detail__decision {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--spacing-62);
+  row-gap: var(--spacing-18);
+  align-items: start;
+}
+
+.case-detail__row--evolution .case-detail__decision-text {
+  grid-column: 1;
+  grid-row: 1;
+  border-top: 1px solid var(--color-image-stroke);
+  padding-top: var(--spacing-24);
+}
+
+.case-detail__row--evolution .case-detail__decision-figure {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.case-detail__row--evolution .case-detail__decision-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 0;
+}
+
+.case-detail__version-row {
+  display: flex;
+  flex-direction: column;
+  /* Same figure-to-heading spacing as the Impact section's stat items
+     (.case-detail__impact-figure margin-bottom + .case-detail__impact-item gap). */
+  gap: calc(var(--spacing-18) + var(--spacing-8));
+}
+
+.case-detail__version-num {
+  font-family: var(--font-serif);
+  font-size: clamp(44px, 6vw, 86px);
+  line-height: 0.9;
+  font-variant-numeric: lining-nums;
+  color: var(--color-brand-red);
+}
+
+.case-detail__version-label {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-semibold);
+  font-size: clamp(16px, 1.3vw, 19px);
+  color: var(--color-walnut-shadow);
+}
+
+.case-detail__row--evolution .case-detail__decision-body {
+  max-width: 42ch;
+}
+
+/* Every numbered-decision-list body paragraph (Configurator's Design
+   Evolution, Portfolio's Final Solution, Onboarding's Approach) reads at
+   the same size as the Impact section's stat paragraphs
+   (.case-detail__impact-item .case-detail__decision-body), not the
+   quieter base .case-detail__decision-body tier. */
+.case-detail__row--evolution .case-detail__decision-body,
+.case-detail__row--approach .case-detail__decision-body {
+  font-size: var(--body-secondary-size);
+  line-height: 1.6;
+  color: var(--color-grey);
+}
+
+/* Same label-to-body gap as the Impact section's stat items
+   (.case-detail__impact-item's flex gap). */
+.case-detail__row--evolution .case-detail__decision-text > * {
+  margin-top: var(--spacing-8);
+}
+
+.case-detail__row--evolution .case-detail__decision-text > *:first-child {
+  margin-top: 0;
+}
+
+/* Caption reads quiet/muted below the screenshot, not the shared grey
+   used for other figure captions on the page. */
+.case-detail__row--evolution .case-detail__decision-caption {
+  color: var(--color-walnut-shadow);
+  opacity: 0.45;
+}
+
+.case-detail__row--evolution .case-detail__decision-caption--accent {
+  color: var(--color-case-accent);
+  opacity: 1;
+}
+
 .case-detail__decision-heading {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: var(--font-weight-bold);
-  font-size: var(--text-heading-sm);
+  font-weight: var(--font-weight-semibold);
+  font-size: clamp(15px, 1.4vw, 20px);
   line-height: var(--leading-heading-sm);
   color: var(--color-case-accent);
+}
+
+.case-detail__decision-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin: 0 8px;
+  background: currentColor;
+  vertical-align: middle;
 }
 
 .case-detail__decision-body {
   margin: 0;
   max-width: 60ch;
-  font-size: clamp(15px, 1.1vw, 20px);
-  line-height: 1.5;
+  font-size: var(--body-detail-size);
+  line-height: var(--leading-body-detail);
   color: var(--color-cork-border);
 }
 
@@ -659,7 +1591,14 @@ body.about-open { overflow: hidden; }
   height: auto;
   object-fit: cover;
   margin-top: var(--spacing-12);
-  border: 1px solid var(--color-cork-border);
+  border: 1px solid var(--color-image-stroke);
+}
+
+.case-detail__decision-figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
 }
 
 .case-detail__decision-image--missing {
@@ -674,7 +1613,7 @@ body.about-open { overflow: hidden; }
   letter-spacing: normal;
   text-transform: uppercase;
   text-align: center;
-  color: var(--color-bark-brown);
+  color: var(--color-brand-red);
 }
 
 /* ---------- IMPACT ---------- */
@@ -704,6 +1643,7 @@ body.about-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-size: clamp(36px, 4vw, 64px);
   line-height: 1;
+  letter-spacing: -0.01em;
   color: var(--color-walnut-shadow);
 }
 
@@ -712,20 +1652,926 @@ body.about-open { overflow: hidden; }
   font-weight: var(--font-weight-medium);
   letter-spacing: normal;
   text-transform: uppercase;
-  color: var(--color-bark-brown);
+  color: var(--color-brand-red);
+}
+
+/* ---------- OVERVIEW / PROBLEM (shared two-column intro pattern) ---------- */
+
+.case-detail__intro-heading {
+  grid-column: 2 / 4;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: var(--font-weight-regular);
+  font-size: clamp(26px, 3.6vw, 52px);
+  line-height: 1.15;
+  color: var(--color-walnut-shadow);
+}
+
+.case-detail__overview-secondary {
+  margin: 0;
+  font-size: var(--body-detail-size);
+  line-height: var(--leading-body-detail);
+  color: var(--color-cork-border);
+}
+
+.case-detail__row--overview .case-detail__overview-secondary:nth-of-type(1),
+.case-detail__row--problem .case-detail__overview-secondary:nth-of-type(1) {
+  grid-column: 2;
+}
+
+.case-detail__row--overview .case-detail__overview-secondary:nth-of-type(2),
+.case-detail__row--problem .case-detail__overview-secondary:nth-of-type(2) {
+  grid-column: 3;
+}
+
+/* ---------- PROBLEM VISUAL ---------- */
+
+.case-detail__problem-visual {
+  grid-column: 2 / 4;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--spacing-62);
+  align-items: start;
+}
+
+.case-detail__problem-visual img {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  border: 1px solid var(--color-image-stroke);
+}
+
+.case-detail__problem-visual .case-detail__bullets {
+  padding-top: var(--spacing-12);
+}
+
+/* ---------- ROW VISUAL (standalone supporting image + caption) ---------- */
+
+.case-detail__row-visual {
+  grid-column: 2 / 4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.case-detail__row-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--color-image-stroke);
+}
+
+.case-detail__row-visual--sm {
+  max-width: 520px;
+}
+
+.case-detail__row-visual--compact {
+  max-width: 320px;
+}
+
+/* ---------- EXPLORATION (Portfolio): same text-left/image-right pattern
+   as the Configurator's Problem row and the Portfolio Problem row above —
+   label + body stacked in the left column, image right, both columns
+   starting at the same top edge. Scoped to #case-detail-2. ---------- */
+
+#case-detail-2 .case-detail__row--exploration {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--spacing-62);
+  align-items: start;
+}
+
+.case-detail__exploration-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-18);
+}
+
+.case-detail__exploration-figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+.case-detail__exploration-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--color-image-stroke);
+}
+
+/* ---------- KEY FINDING (Portfolio): same pattern — label + heading +
+   body left, image right. Scoped to #case-detail-2. ---------- */
+
+#case-detail-2 .case-detail__row--validation {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--spacing-62);
+  align-items: start;
+}
+
+.case-detail__validation-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-18);
+}
+
+.case-detail__validation-visual {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+.case-detail__validation-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--color-image-stroke);
+}
+
+/* ---------- RESEARCH & INSIGHTS ---------- */
+
+.case-detail__research-intro {
+  grid-column: 2 / 4;
+  margin: 0;
+  font-size: var(--body-lead-size);
+  line-height: var(--leading-body-lead);
+  color: var(--color-walnut-shadow);
+}
+
+.case-detail__research-subhead {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-bold);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-brand-red);
+}
+
+/* ---------- DESIGN EVOLUTION ---------- */
+
+.case-detail__decision-caption,
+.case-detail__decision-insight,
+.case-detail__compare-caption {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.case-detail__decision-insight {
+  font-size: 14px;
+}
+
+.case-detail__decision-caption {
+  font-size: 12px;
+  font-weight: var(--font-weight-regular);
+  color: var(--color-grey);
+}
+
+.case-detail__decision-caption-label {
+  margin-right: var(--spacing-6);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-brand-red);
+}
+
+.case-detail__decision-insight {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-case-accent);
+}
+
+/* ---------- KEY DESIGN DECISIONS ---------- */
+
+/* 01 — before/after compare: text in the second column, before/after crops
+   stacked together in the third. */
+.case-detail__key-decision-compare {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+}
+
+/* 04 — onboarding-into-dashboard before/after: full-width row, side by side. */
+.case-detail__decision .case-detail__key-decision-compare {
+  flex-direction: row;
+}
+
+.case-detail__decision .case-detail__compare-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.case-detail__compare-item {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.case-detail__compare-media {
+  border: 1px solid var(--color-image-stroke);
+  background: var(--color-off-white);
+  display: flex;
+  align-items: center;
+}
+
+.case-detail__compare-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.case-detail__compare-caption {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  font-size: 12px;
+  font-weight: var(--font-weight-regular);
+  color: var(--color-grey);
+}
+
+.case-detail__compare-badge {
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-grey);
+}
+
+.case-detail__compare-badge--accent {
+  color: var(--color-case-accent);
+}
+
+/* 04 — closes the section on a quieter note: image in the second column,
+   text in the third. A thin strip of the tab bar itself, captioned with
+   the sequence it represents. */
+.case-detail__sequence-media {
+  max-width: 620px;
+}
+
+.case-detail__sequence-labels {
+  margin: var(--spacing-12) 0 0;
+  padding: var(--spacing-12) 0 0;
+  border-top: 1px solid var(--color-cork-border);
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-case-accent);
+}
+
+/* ---------- IMPACT GRID ---------- */
+
+.case-detail__impact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-62) var(--spacing-62);
+}
+
+#case-detail-3 .case-detail__row--problem .case-detail__impact-content {
+  grid-column: 1 / 4;
+}
+
+#case-detail-3 .case-detail__row--problem .case-detail__impact-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+#case-detail-3 .case-detail__row--impact {
+  display: block;
+}
+
+#case-detail-3 .case-detail__row--impact .case-detail__label {
+  grid-column: auto;
+  margin: 0 0 clamp(28px, 5vh, 56px);
+}
+
+#case-detail-3 .case-detail__row--impact .case-detail__impact-content {
+  grid-column: auto;
+}
+
+#case-detail-3 .case-detail__row--impact .case-detail__impact-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+#case-detail-3 .case-detail__row--problem .case-detail__impact-item {
+  gap: var(--spacing-24);
+}
+
+/* ---- Portfolio case study reflection: stack the section label above the
+   three closing statements instead of the shared side-by-side row grid ---- */
+#case-detail-2 .case-detail__row--impact {
+  display: block;
+}
+
+#case-detail-2 .case-detail__row--impact .case-detail__label {
+  grid-column: auto;
+  margin: 0 0 clamp(28px, 5vh, 56px);
+}
+
+#case-detail-2 .case-detail__row--impact .case-detail__impact-content {
+  grid-column: auto;
+}
+
+#case-detail-2 .case-detail__row--impact .case-detail__impact-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+/* Shared "impact item" body text — a number/short heading + a sentence,
+   repeated in a grid. Used by every case study's numbered problem/impact
+   grids, not just case 3's. */
+.case-detail__impact-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding-top: var(--spacing-24);
+  border-top: 1px solid var(--color-image-stroke);
+}
+
+.case-detail__impact-item .case-detail__decision-heading {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-semibold);
+  font-size: clamp(16px, 1.3vw, 19px);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  max-width: none;
+  color: var(--color-walnut-shadow);
+}
+
+.case-detail__impact-item .case-detail__decision-body {
+  font-size: var(--body-secondary-size);
+  line-height: 1.6;
+  max-width: 42ch;
+  color: var(--color-grey);
+  opacity: 1;
+  text-wrap: pretty;
 }
 
 /* ---------- REFLECTION ---------- */
 
 .case-detail__reflection-body {
   grid-column: 2 / 4;
-  margin: 0;
   max-width: 70ch;
-  font-family: var(--font-serif);
-  font-size: clamp(16px, 1.3vw, 22px);
-  font-style: normal;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+.case-detail__reflection-body p {
+  margin: 0;
+  font-size: var(--body-secondary-size);
+  line-height: 1.6;
+  color: var(--color-grey);
+}
+
+/* ---------- PORTFOLIO CASE STUDY OVERRIDES ---------- */
+/* Final Solution reuses the shared .case-detail__row--evolution module
+   (see Configurator's Design Evolution, and Onboarding's Approach) for its
+   item layout — only this case study's module padding is specific here. */
+#case-detail-2 .case-detail__row--approach {
+  padding: clamp(56px, 11vh, 130px) 0;
+}
+
+/* ---------- ONBOARDING CASE STUDY OVERRIDES ---------- */
+/* Approach reuses the same shared .case-detail__row--evolution module —
+   only this case study's module padding is specific here. */
+#case-detail-3 .case-detail__row--approach {
+  padding: clamp(56px, 11vh, 130px) 0;
+}
+
+/* ---------- CONFIGURATOR CASE STUDY (case-detail-1) — SECTION LAYOUT ----------
+   Reworks the shared case-detail row pattern for this case study only: a
+   numbered header ("01 / Overview" etc, the shared .case-detail__label
+   style used by every case study) sits above hand-built section layouts
+   (not the shared 3-column .case-detail__row grid). Everything below is
+   scoped with the #case-detail-1 id so case studies 2 and 3, which reuse
+   many of the same class names, are unaffected. */
+
+/* The shared .case-detail__row is a 3-column grid; every row in this case
+   study lays out its own content instead, so the row itself just stacks
+   its direct children (section-head, then whatever the section needs). */
+#case-detail-1 .case-detail__row {
+  display: block;
+}
+
+/* The 220px inter-section rhythm is shared (see .case-detail__inner above)
+   across all three case studies. Evolution/Impact/Footer in this case
+   study no longer add their own top/bottom padding on top of it (see
+   below) — one mechanism per boundary. */
+
+/* ---- Overview: shared component (label, headline, lead/secondary body
+   copy, Timeline/Scope/Team meta grid) — primary content left, Timeline/
+   Scope/Team right, the same left-primary/right-secondary column logic as
+   Problem (text left, image right) and Reflection (quote left, commentary
+   right). Reused by any row carrying .case-detail__row--overview — not
+   specific to one case study. ---- */
+
+/* #case-detail-1 .case-detail__row above (ID + class, specificity 1-1-0)
+   resets every row in this case study to display:block, which beats the
+   shared .case-detail__row--overview rule below on specificity alone
+   (class only, 0-1-0) regardless of source order — unlike Problem/
+   Research, which opt back out via their own #case-detail-1-scoped rules.
+   Overview needs the same ID-scoped opt-out to stay a grid here. */
+#case-detail-1 .case-detail__row--overview {
+  display: grid;
+}
+
+.case-detail__row--overview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--spacing-62);
+  row-gap: var(--spacing-24);
+  align-items: start;
+}
+
+/* Flattened so label/headline/body-stack become direct items of the row
+   grid — this lets the meta grid's row-start land exactly at the
+   body-stack's row-start (label-row height + heading-row height + the two
+   row-gaps) with no measured/guessed offset. */
+.case-detail__overview-col-text {
+  display: contents;
+}
+
+.case-detail__overview-col-text .case-detail__label {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.case-detail__row--overview .case-detail__intro-heading {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.case-detail__overview-col-text .case-detail__body-stack {
+  grid-column: 1;
+  grid-row: 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-18);
+}
+
+.case-detail__overview-lead {
+  margin: 0;
+  font-size: var(--body-lead-size);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--leading-body-lead);
+  letter-spacing: normal;
+  color: var(--color-walnut-shadow);
+}
+
+.case-detail__overview-secondary--dim {
+  margin: 0;
+  font-size: var(--body-secondary-size);
+  line-height: var(--leading-body-secondary);
+  color: var(--color-walnut-shadow);
+}
+
+/* Timeline / Scope / Team sit side by side in the right column, top-
+   aligned with the body text (not the headline) via the grid-row
+   placement above — each value stacks on its own line via
+   .case-detail__meta-col's flex gap. align-items is "start", not
+   "baseline": each column is itself a column flex container, and
+   browsers disagree on how to synthesize a baseline for a multi-line
+   flex column (it shifts with item count), which throws Team - the
+   only column with 4 lines instead of 1-3 - out of line with Timeline
+   and Scope. Starting all three at their shared top edge sidesteps
+   that ambiguity entirely, since every column's first child is a
+   label at the same font-size/line-height. */
+.case-detail__overview-col-meta {
+  grid-column: 2;
+  grid-row: 3;
+  align-self: start;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: var(--spacing-24);
+  align-items: start;
+}
+
+/* Labels and values read as body copy, matching the paragraph text next
+   to them, instead of a small bold field-label style. */
+.case-detail__overview-col-meta .case-detail__meta-label,
+.case-detail__overview-col-meta .case-detail__meta-value {
+  font-size: var(--body-detail-size);
+  font-weight: var(--font-weight-regular);
   line-height: 1.5;
+}
+
+/* Labels are uppercase and grey, distinct from the values but not
+   competing with the maroon accent reserved for the section label. */
+.case-detail__overview-col-meta .case-detail__meta-label {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-grey);
+}
+
+/* Values read as plain body text — never the cork-border/maroon tone
+   used for secondary paragraph copy elsewhere on this page. */
+.case-detail__overview-col-meta .case-detail__meta-value {
+  color: var(--color-walnut-shadow);
+}
+
+/* ---- Problem: text column (label, headline, body, limitations) beside a portrait image ---- */
+
+#case-detail-1 .case-detail__row--problem {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--spacing-62);
+  align-items: start;
+}
+
+#case-detail-1 .case-detail__problem-col-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+}
+
+#case-detail-1 .case-detail__problem-col-text .case-detail__body-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-18);
+}
+
+#case-detail-1 .case-detail__row--problem .case-detail__overview-secondary {
+  max-width: 46ch;
+}
+
+#case-detail-1 .case-detail__row--problem .case-detail__overview-secondary:not(.case-detail__overview-secondary--dim) {
+  font-size: var(--body-lead-size);
+  color: var(--color-walnut-shadow);
+}
+
+/* Limitations list: hairline rule per row, rectangle glyph prefix — overrides
+   the shared dot-bullet .case-detail__bullets treatment for this case only. */
+#case-detail-1 .case-detail__row--problem .case-detail__bullets {
+  gap: 0;
+}
+
+#case-detail-1 .case-detail__row--problem .case-detail__bullets li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-12);
+  padding: var(--spacing-12) 0 0;
+  border-top: 1px solid var(--color-image-stroke);
+  font-size: clamp(15px, 1.1vw, 20px);
+  line-height: 1.4;
   color: var(--color-cork-border);
+}
+
+#case-detail-1 .case-detail__row--problem .case-detail__bullets li + li {
+  margin-top: var(--spacing-12);
+}
+
+/* Same 5x5 square as .story__progress-marker / .case-detail__row--goal
+   .case-detail__goal-item::before, so the marker reads as one consistent
+   scroll-line motif across the page. */
+#case-detail-1 .case-detail__row--problem .case-detail__bullets li::before {
+  content: '';
+  display: inline-block;
+  position: static;
+  flex-shrink: 0;
+  width: 5px;
+  height: 5px;
+  background: var(--color-case-accent);
+}
+
+#case-detail-1 .case-detail__problem-col-image {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+#case-detail-1 .case-detail__problem-col-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--color-image-stroke);
+}
+
+#case-detail-1 .case-detail__problem-col-image .case-detail__decision-caption {
+  max-width: 40ch;
+}
+
+/* ---- Problem (Portfolio): same text-left/image-right pattern as the
+   Configurator's Problem row above — label + headline + body stacked in
+   the left column, image right. Scoped to #case-detail-2 so case studies
+   1 and 3, which reuse the same class names, are unaffected. ---- */
+#case-detail-2 .case-detail__row--problem {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--spacing-62);
+  align-items: start;
+}
+
+#case-detail-2 .case-detail__problem-col-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+}
+
+#case-detail-2 .case-detail__problem-col-text .case-detail__body-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-18);
+}
+
+#case-detail-2 .case-detail__row--problem .case-detail__overview-secondary {
+  max-width: 46ch;
+  font-size: var(--body-lead-size);
+  color: var(--color-walnut-shadow);
+}
+
+#case-detail-2 .case-detail__problem-col-image {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+#case-detail-2 .case-detail__problem-col-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--color-image-stroke);
+}
+
+#case-detail-2 .case-detail__problem-col-image .case-detail__decision-caption {
+  max-width: 40ch;
+}
+
+/* ---- Research & Insights: label + serif headline, then a two-column
+   split (quotes left, findings right) matching the Problem row's equal
+   two-column grid ---- */
+
+#case-detail-1 .case-detail__row--research {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-24);
+}
+
+#case-detail-1 .case-detail__research-heading {
+  max-width: 30ch;
+}
+
+#case-detail-1 .case-detail__research-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--spacing-62);
+  align-items: start;
+  margin-top: var(--spacing-24);
+}
+
+#case-detail-1 .case-detail__research-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+}
+
+#case-detail-1 .case-detail__research-lead {
+  margin: 0;
+  max-width: 46ch;
+  font-size: var(--body-lead-size);
+  line-height: 1.5;
+  color: var(--color-walnut-shadow);
+}
+
+#case-detail-1 .case-detail__research-quote {
+  margin: 0;
+  padding-left: 16px;
+  border-left: 2px solid var(--color-case-accent);
+}
+
+#case-detail-1 .case-detail__research-quote p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(18px, 1.5vw, 24px);
+  line-height: 1.4;
+  color: var(--color-walnut-shadow);
+}
+
+#case-detail-1 .case-detail__research-quote cite {
+  display: block;
+  margin-top: var(--spacing-8);
+  font-style: normal;
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-grey);
+}
+
+#case-detail-1 .case-detail__research-findings {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+}
+
+#case-detail-1 .case-detail__research-findings li {
+  position: relative;
+  padding-left: 18px;
+  font-size: var(--body-lead-size);
+  line-height: 1.5;
+  color: var(--color-walnut-shadow);
+}
+
+#case-detail-1 .case-detail__research-findings li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 6px;
+  height: 6px;
+  background: var(--color-case-accent);
+}
+
+/* ---- Design Evolution: badge + text beside image, images shown uncropped ----
+   Item layout itself lives in the shared, unscoped .case-detail__row--evolution
+   module above (reused by Portfolio's Final Solution and Onboarding's
+   Approach) — only this case study's padding is specific here. */
+
+/* No top/bottom padding of its own — the 220px .case-detail__inner gap
+   above already supplies the full boundary on both sides, so this row
+   doesn't need to add anything on top of it. */
+#case-detail-1 .case-detail__row--evolution {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* ---- Impact: generous padding, plain eyebrow ---- */
+
+/* No top/bottom padding of its own — the 220px .case-detail__inner gap
+   above already supplies the full boundary on both sides. */
+#case-detail-1 .case-detail__row--impact {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+#case-detail-1 .case-detail__row--impact .case-detail__label {
+  margin-bottom: var(--spacing-48);
+}
+
+#case-detail-1 .case-detail__impact-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-62) clamp(40px, 4vw, 60px);
+}
+
+#case-detail-1 .case-detail__impact-figure {
+  display: flex;
+  align-items: flex-end;
+  height: clamp(44px, 6vw, 86px);
+  margin-bottom: var(--spacing-18);
+}
+
+#case-detail-1 .case-detail__impact-stat {
+  font-family: var(--font-serif);
+  /* Same size/line-height as Design Evolution's version numerals
+     (#case-detail-1 .case-detail__version-num). */
+  font-size: clamp(44px, 6vw, 86px);
+  line-height: 0.9;
+  color: var(--color-brand-red);
+}
+
+#case-detail-1 .case-detail__impact-stat--icon {
+  font-size: clamp(27px, 3.75vw, 54px);
+  line-height: 0.9;
+}
+
+/* No Configurator-specific override needed here — the sitewide
+   .case-detail__impact-item .case-detail__decision-heading default is now
+   DM Sans/18.72px/600, the same value this used to require a scoped
+   override to get. Matches Onboarding's and Portfolio's Impact-grid
+   modules, and .case-detail__version-label below, directly. */
+
+/* ---- Reflection: pull quote with the closing paragraphs beside it ---- */
+
+#case-detail-1 .case-detail__row--reflection,
+#case-detail-2 .case-detail__row--reflection,
+#case-detail-3 .case-detail__row--reflection {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  column-gap: var(--spacing-62);
+  row-gap: var(--spacing-24);
+  align-items: start;
+}
+
+#case-detail-1 .case-detail__row--reflection > .case-detail__label,
+#case-detail-2 .case-detail__row--reflection > .case-detail__label,
+#case-detail-3 .case-detail__row--reflection > .case-detail__label {
+  grid-column: 1 / -1;
+}
+
+#case-detail-1 .case-detail__reflection-quote,
+#case-detail-2 .case-detail__reflection-quote,
+#case-detail-3 .case-detail__reflection-quote {
+  grid-column: 1;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(26px, 3.6vw, 52px);
+  line-height: 1.15;
+  max-width: 32ch;
+  color: var(--color-walnut-shadow);
+}
+
+#case-detail-1 .case-detail__reflection-body,
+#case-detail-2 .case-detail__reflection-body,
+#case-detail-3 .case-detail__reflection-body {
+  grid-column: 2;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+  margin-top: 0;
+}
+
+#case-detail-1 .case-detail__reflection-body {
+  max-width: 480px;
+}
+
+/* ---- Footer: hairline rule, two zones on one shared baseline ----
+   Full-bleed like .case-detail__row--goal: cancels the section's own
+   left/right padding via negative margin, then re-pads to the same
+   --case-pad-l/--case-pad-r edges so the hairline rule spans the full
+   screen width while the row/link/label content still lines up with
+   every other row above it. Shared across all three case studies.
+
+   "Back to top" isn't part of this grid — it's the page-level scroll
+   progress rail (see .story__progress in scroll-story.css), a
+   position:fixed element that docks itself near this footer's right edge
+   once scrolled to the bottom, vertical text kept intentionally. ---- */
+
+.case-detail__footer {
+  margin-inline: calc(-1 * var(--case-pad-l)) calc(-1 * var(--case-pad-r));
+  /* Top spacing is padding-only (no margin-top) so there's one spacing
+     mechanism for this edge, not two stacked on top of the shared 220px
+     flex gap: 43px + the 1px border below -> 220+43+1 = 264px between
+     Reflection and the footer's visible content. */
+  padding: 43px var(--case-pad-r) var(--spacing-48) var(--case-pad-l);
+  border-top: 1px solid var(--color-image-stroke);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: end;
+  column-gap: var(--spacing-48);
+  row-gap: var(--spacing-24);
+}
+
+/* Email/LinkedIn links reuse .about-meta exactly (see .about-meta /
+   .about-meta__arrow in the About section below) — only its absolute
+   overlay positioning is overridden here, since the footer sits in normal
+   document flow rather than over the About panel. */
+.case-detail__footer .about-meta {
+  position: static;
+  gap: 72px;
+  /* Cancel the About overlay's own reveal-animation initial state (shared
+     .about-meta rule further down hides it at opacity:0 until
+     body.about-open) — this instance isn't part of that overlay. */
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/* .about-meta a's own color is --text-tertiary — a light, near-white tone
+   meant to sit over the About panel's dark photo background. The footer
+   sits on the case study's off-white background instead, so it needs the
+   same dark ink the rest of the footer/case content uses. */
+.case-detail__footer .about-meta a {
+  color: var(--color-cork-border);
+  border-bottom-color: var(--color-cork-border);
+}
+
+.case-detail__footer .about-meta a:hover {
+  color: var(--color-driftwood);
+  border-bottom-color: var(--color-driftwood);
+}
+
+.case-detail__footer-next {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-self: end;
+  text-align: right;
+}
+
+.case-detail__footer-next-label {
+  margin-bottom: 2px;
+  font-size: 12px;
+  font-weight: var(--font-weight-regular);
+  letter-spacing: 0.08em;
+  color: var(--color-grey);
+}
+
+.case-detail__footer-next-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--color-walnut-shadow);
 }
 
 /* ---------- RESPONSIVE ---------- */
@@ -733,9 +2579,14 @@ body.about-open { overflow: hidden; }
 @media (max-width: 980px) {
   .intro { padding: var(--spacing-24) var(--spacing-24) var(--spacing-18); max-width: 80vw; }
   .side-nav { right: var(--spacing-18); }
-  .hero__photo { object-position: 60% center; }
+  .hero__photo, .hero__video { object-position: 60% center; }
   .hero { padding-bottom: var(--spacing-18); display: flex; flex-direction: column; justify-content: flex-end; }
-  .hero__screen { display: none; }
+  .hero__screen, .hero__screen-video, .hero__screen-video-grade { display: none; }
+
+  /* The screen-rect math assumes a centered object-fit:cover crop; mobile
+     shifts object-position, so it'd misalign here — same reason
+     .hero__screen opts out at this breakpoint. */
+  .hero-video__hitbox { display: none; }
 
   .case-card {
     position: static;
@@ -779,18 +2630,84 @@ body.about-open { overflow: hidden; }
   }
   .about-meta { position: static; margin-top: var(--spacing-24); }
 
-  .case-detail { padding-right: var(--spacing-45); }
-  .case-detail__meta { grid-template-columns: 1fr; row-gap: var(--spacing-24); }
-  .case-detail__meta-col--scope { position: static; grid-column: 1; }
-  .case-detail__meta-col--team { grid-column: 1; }
+  .case-detail {
+    --case-pad-l: var(--spacing-24);
+    --case-pad-r: var(--spacing-24);
+    padding: var(--spacing-48) var(--case-pad-r) 0 var(--case-pad-l);
+  }
   .case-detail__row { grid-template-columns: 1fr; column-gap: var(--spacing-18); row-gap: var(--spacing-18); }
   .case-detail__principle,
   .case-detail__decisions,
   .case-detail__impact-content,
-  .case-detail__reflection-body { grid-column: 1; }
+  .case-detail__reflection-body,
+  .case-detail__problem-visual,
+  .case-detail__row-visual,
+  .case-detail__intro-heading,
+  .case-detail__research-intro { grid-column: 1; }
+
+  #case-detail-2 .case-detail__row--exploration,
+  #case-detail-2 .case-detail__row--validation { grid-template-columns: 1fr; }
+
+  .case-detail__validation-visual {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .case-detail__row--overview .case-detail__overview-secondary:nth-of-type(1),
+  .case-detail__row--overview .case-detail__overview-secondary:nth-of-type(2),
+  .case-detail__row--problem .case-detail__overview-secondary:nth-of-type(1),
+  .case-detail__row--problem .case-detail__overview-secondary:nth-of-type(2) { grid-column: 1; }
+
+  .case-detail__columns > *:nth-child(1),
+  .case-detail__columns > *:nth-child(2) { grid-column: 1; }
+
+  .case-detail__problem-visual { grid-template-columns: 1fr; row-gap: var(--spacing-18); }
+  .case-detail__row--evolution .case-detail__decision { grid-template-columns: 1fr; }
+  .case-detail__row--evolution .case-detail__decision-text,
+  .case-detail__row--evolution .case-detail__decision-figure { grid-column: 1; grid-row: auto; }
+  .case-detail__impact-grid { grid-template-columns: 1fr; }
+  .case-detail__decision .case-detail__key-decision-compare { flex-direction: column; }
+  #case-detail-3 .case-detail__row--problem .case-detail__impact-content { grid-column: 1; }
+  #case-detail-3 .case-detail__row--problem .case-detail__impact-grid { grid-template-columns: 1fr; }
+  #case-detail-1 .case-detail__row--reflection,
+  #case-detail-2 .case-detail__row--reflection,
+  #case-detail-3 .case-detail__row--reflection { grid-template-columns: 1fr; }
+  #case-detail-1 .case-detail__reflection-quote,
+  #case-detail-1 .case-detail__reflection-body,
+  #case-detail-2 .case-detail__reflection-quote,
+  #case-detail-2 .case-detail__reflection-body,
+  #case-detail-3 .case-detail__reflection-quote,
+  #case-detail-3 .case-detail__reflection-body { grid-column: 1; max-width: none; }
+
+  .case-detail__row--overview { grid-template-columns: 1fr; row-gap: var(--spacing-24); }
+  .case-detail__row--overview .case-detail__label,
+  .case-detail__row--overview .case-detail__intro-heading,
+  .case-detail__row--overview .case-detail__body-stack,
+  .case-detail__overview-col-meta { grid-column: 1; grid-row: auto; }
+  .case-detail__overview-col-meta { grid-template-columns: 1fr; row-gap: var(--spacing-24); }
+
+  #case-detail-1 .case-detail__row--problem,
+  #case-detail-2 .case-detail__row--problem { grid-template-columns: 1fr; }
+  #case-detail-1 .case-detail__row--problem .case-detail__intro-heading,
+  #case-detail-1 .case-detail__row--problem .case-detail__overview-secondary,
+  #case-detail-2 .case-detail__row--problem .case-detail__intro-heading,
+  #case-detail-2 .case-detail__row--problem .case-detail__overview-secondary { max-width: none; }
+
+  #case-detail-1 .case-detail__research-heading { max-width: none; }
+  #case-detail-1 .case-detail__research-columns { grid-template-columns: 1fr; row-gap: var(--spacing-24); }
+  #case-detail-1 .case-detail__research-lead { max-width: none; }
+
+  .case-detail__footer {
+    grid-template-columns: 1fr;
+    justify-items: start;
+    padding-top: var(--spacing-48);
+    padding-bottom: var(--spacing-48);
+  }
+  .case-detail__footer-next { align-items: flex-start; justify-self: start; text-align: left; }
 }
 
 @media (max-width: 560px) {
-  .intro__name { font-size: 15px; }
+  .intro__name { font-size: 19px; }
   .intro__role { font-size: 11px; }
+  .case-detail__footer-next-title { font-size: 19px; }
 }
