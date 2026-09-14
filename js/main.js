@@ -80,9 +80,24 @@ function announceActiveVideo(videoEl) {
   document.dispatchEvent(new CustomEvent('hero:active-video-changed', { detail: { video: videoEl } }));
 }
 
-function crossfadeToVideo(src) {
+// `onReveal` fires at the exact moment the new clip actually becomes
+// visible (immediately if it's already showing, otherwise once it's
+// buffered enough to play) — renderCase() uses it to time hiding the photo
+// layer so that swap never race with this one and leave a gap where
+// neither is visible (see renderCase()'s own comment on the matching
+// video<->photo race this mirrors).
+// `poster` is a static fallback frame for the browsers/settings that block
+// autoplay outright (e.g. Brave's Shields ship an "Autoplay" permission,
+// separate from Chrome's, that defaults to blocked per-site) — `back.play()`
+// below is already allowed to fail silently, but without a poster a
+// blocked/paused video with no decoded frame renders solid black instead of
+// just sitting static, which reads the same as "the video never loaded."
+function crossfadeToVideo(src, onReveal, poster) {
   const { front, back } = getHeroVideos();
-  if (front.getAttribute('src') === src) return; // already showing this clip
+  if (front.getAttribute('src') === src) {
+    if (onReveal) onReveal();
+    return; // already showing this clip
+  }
 
   const token = renderCaseToken;
   const reveal = () => {
@@ -92,11 +107,13 @@ function crossfadeToVideo(src) {
     front.classList.remove('is-visible');
     frontVideoIsA = !frontVideoIsA;
     announceActiveVideo(back);
+    if (onReveal) onReveal();
     window.setTimeout(() => {
       if (token === renderCaseToken) front.pause();
     }, VIDEO_CROSSFADE_MS);
   };
 
+  if (poster) back.poster = poster;
   back.setAttribute('src', src);
   back.load();
   if (back.readyState >= 2) reveal();
@@ -125,23 +142,39 @@ function renderCase(id) {
 
   photoEl.style.transform = data.zoom ? `scale(${data.zoom})` : ((data.screenshot || data.screenVideo) ? `scale(${LAPTOP_ZOOM})` : '');
 
+  // Whichever layer (video or photo) is leaving never starts fading out
+  // until the incoming one is actually ready to show — hiding it
+  // immediately on click, independent of the new layer's own load time,
+  // left a gap on any real network latency where neither was visible and
+  // the near-black .hero__bg showed through full-screen behind them
+  // (confirmed by throttling the network while switching into case 3: the
+  // outgoing video finished its fade-out well before the incoming photo's
+  // preload resolved). crossfadeToVideo() already avoided this for
+  // video<->video switches by keeping `front` visible until `back` is
+  // ready; the branches below now follow the same rule for the video<->
+  // photo switches only case 3 (the one case with no `data.video`) can
+  // trigger.
   if (data.video) {
-    photoEl.classList.add('is-loading');
-    crossfadeToVideo(data.video);
+    crossfadeToVideo(data.video, () => {
+      if (token !== renderCaseToken) return;
+      photoEl.classList.add('is-loading');
+    }, data.photo);
   } else {
     const { front } = getHeroVideos();
-    front.pause();
-    front.classList.remove('is-visible');
     if (data.photo) {
       const preload = new Image();
       preload.onload = () => {
         if (token !== renderCaseToken) return;
         photoEl.src = data.photo;
         photoEl.classList.remove('is-loading');
+        front.pause();
+        front.classList.remove('is-visible');
       };
       preload.src = data.photo;
     } else {
       photoEl.classList.add('is-loading');
+      front.pause();
+      front.classList.remove('is-visible');
     }
   }
 
@@ -192,17 +225,32 @@ function layoutScreenVideo(screenVideo) {
     return;
   }
 
+  positionScreenVideo();
+
+  const token = renderCaseToken;
+  const reveal = () => {
+    if (token !== renderCaseToken) return;
+    videoEl.play().catch(() => {});
+    videoEl.classList.add('is-visible');
+    // hero-video-overlay.js's hover/expand/pause controls target whichever
+    // <video> is "active"; for cases with a screen-video overlay (case 3)
+    // that's this element rather than the full-bleed hero-video-a/b pair.
+    announceActiveVideo(videoEl);
+  };
+
   if (videoEl.getAttribute('src') !== activeScreenVideo.src) {
+    // A stale first frame from the previous clip would otherwise flash
+    // inside the new clip's clip-path the instant is-visible turns on, so
+    // this clip only reveals once it actually has data of its own — same
+    // readiness gate as crossfadeToVideo() above.
+    videoEl.classList.remove('is-visible');
     videoEl.setAttribute('src', activeScreenVideo.src);
     videoEl.load();
+    if (videoEl.readyState >= 2) reveal();
+    else videoEl.addEventListener('loadeddata', reveal, { once: true });
+  } else {
+    reveal();
   }
-  videoEl.play().catch(() => {});
-  positionScreenVideo();
-  videoEl.classList.add('is-visible');
-  // hero-video-overlay.js's hover/expand/pause controls target whichever
-  // <video> is "active"; for cases with a screen-video overlay (case 3)
-  // that's this element rather than the full-bleed hero-video-a/b pair.
-  announceActiveVideo(videoEl);
 }
 
 // The composite's full frame is sized/positioned exactly like a normal

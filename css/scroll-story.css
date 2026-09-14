@@ -101,7 +101,7 @@
 .story__panel-number {
   display: block;
   margin: 0 0 var(--spacing-8);
-  font-size: 12px;
+  font-size: var(--text-2xs);
   font-weight: var(--font-weight-regular);
   color: var(--text-tertiary);
 }
@@ -326,7 +326,7 @@ body.about-open .story__progress {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   white-space: nowrap;
-  font-size: 12px;
+  font-size: var(--text-2xs);
   font-weight: var(--font-weight-regular);
 }
 
@@ -404,7 +404,7 @@ body.about-open .story__progress {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   white-space: nowrap;
-  font-size: 12px;
+  font-size: var(--text-2xs);
   font-weight: var(--font-weight-regular);
   color: var(--text-tertiary);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
@@ -428,7 +428,7 @@ body.about-open .story__progress {
 .story__caption {
   display: inline-block;
   margin: 0 0 var(--spacing-10);
-  font-size: 12px;
+  font-size: var(--text-2xs);
   font-weight: var(--font-weight-regular);
   color: var(--color-brand-red);
   opacity: 0;
@@ -498,7 +498,7 @@ body.about-open .story__progress {
   flex: 1 1 200px;
   border-top: var(--line-hairline) solid var(--color-cork-border);
   padding-top: var(--spacing-12);
-  font-size: 15px;
+  font-size: var(--text-sm);
   line-height: 1.4;
   color: var(--color-cork-border);
 }
@@ -547,7 +547,7 @@ body.about-open .story__progress {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   white-space: nowrap;
-  font-size: 12px;
+  font-size: var(--text-2xs);
   color: var(--color-walnut-shadow);
 }
 
