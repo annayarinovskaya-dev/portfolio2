@@ -9,6 +9,7 @@
   --color-off-white: #ffffff;
   --color-image-stroke: rgba(16, 9, 4, 0.2);
   --color-grey: #737373; /* darkened from #8c8c8c: 3.36:1 on white failed WCAG AA; #737373 gives 4.74:1 */
+  --color-hairline-on-white: #e4e0db; /* dividers on the off-white case-detail background; --color-image-stroke composited on white renders ~#cfcecd, a visibly cooler/darker grey, so kept distinct */
 
   /* Line weights — dividers, image frames, underlines, icon strokes, rails
      use --line-hairline; quote/modal accent borders use --line-accent. */
@@ -38,25 +39,16 @@
   --leading-heading-sm: 1.09;
   --outcome-label-size: clamp(20px, 1.9vw, 36px);
 
-  /* Body-copy "Detail" tier — quieter than the case-study lede/supporting
-     tiers, cork-border colored. Used for numbered-decision-list item
-     descriptions (Onboarding's key-decisions, Portfolio's Approach list)
-     and intro paragraphs (Portfolio's Exploration/Validation rows). Named
-     here because the same three numbers were previously duplicated ad hoc
-     across .case-detail__decision-body, .case-detail__overview-secondary,
-     .case-detail__columns p, and .case-detail__research-intro. */
-  --body-detail-size: clamp(15px, 1.1vw, 20px);
-  --leading-body-detail: 1.5;
-
-  /* Body-copy "Lead" and "Secondary" tiers — the prominent intro paragraph
-     of a two-part pair (dark, larger) and its dimmer supporting paragraph
-     (grey). Shared across every case study's Overview/Problem/Context intro
-     pairs and Research/Exploration/Validation lead-ins — previously
-     hand-copied as raw clamp() values in three separate places per tier. */
+  /* Body-copy "Lead" tier — the single size/style for all grey body
+     paragraphs across case studies: intro pairs (Overview/Problem/Context,
+     Research/Exploration/Validation), numbered-decision-list item
+     descriptions (Onboarding's key-decisions, Portfolio's Approach/Final
+     Solution, Configurator's Design Evolution), and reflection copy.
+     Previously split into three near-identical tiers (Lead/Secondary/Detail)
+     that read as inconsistent sizes for the same grey body-copy role;
+     collapsed to one so all grey paragraphs match. */
   --body-lead-size: clamp(17px, 1.3vw, 23px);
   --leading-body-lead: 1.5;
-  --body-secondary-size: clamp(15px, 1.35vw, 18px);
-  --leading-body-secondary: 1.6;
 
   /* Spacing */
   --spacing-6: 6px;
@@ -671,7 +663,7 @@ body.nav-hidden .intro {
 }
 
 .intro__role {
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
 }
 
 .intro__name {
@@ -749,7 +741,7 @@ body.nav-hidden .side-nav {
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--text-primary);
+  color: var(--text-tertiary);
   background: transparent;
   border: none;
   padding: 0;
@@ -915,7 +907,7 @@ body:not(.about-open) .about-label {
   background-image: linear-gradient(
     to bottom,
     rgba(139, 40, 40, 0.85) 50%,
-    var(--text-primary) 50%
+    var(--text-tertiary) 50%
   );
   background-size: 100% 200%;
   background-position: 0 100%;
@@ -966,7 +958,7 @@ body.about-open #about-tab:hover .about-label {
   top: 0;
   bottom: 0;
   width: var(--line-hairline);
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.6);
 }
 
 .case-nav__label {
@@ -982,7 +974,7 @@ body.about-open #about-tab:hover .about-label {
   font-size: 12px;
   font-weight: var(--font-weight-regular);
   letter-spacing: normal;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
@@ -1002,7 +994,7 @@ body.about-open #about-tab:hover .about-label {
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: var(--line-hairline) solid var(--color-off-white);
+  border: var(--line-hairline) solid var(--text-tertiary);
   color: var(--text-tertiary);
   font-family: var(--font-display);
   font-size: 24px;
@@ -1047,10 +1039,11 @@ body.about-open #about-tab:hover .about-label {
 
 .case-card__desc {
   margin: 0.7vh 0 0;
-  font-size: 16px;
+  font-size: clamp(14px, 1.05vw, 21px);
   font-weight: var(--font-weight-regular);
   line-height: 1.4;
-  color: var(--text-secondary);
+  color: var(--text-primary);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
   max-width: 40vw;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
@@ -1330,30 +1323,6 @@ body.about-open .about-meta {
   color: var(--color-walnut-shadow);
 }
 
-/* ---------- META ROW ---------- */
-
-.case-detail__meta-col {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6);
-}
-
-.case-detail__meta-label {
-  font-size: var(--body-detail-size);
-  font-weight: var(--font-weight-regular);
-  color: var(--color-walnut-shadow);
-}
-
-.case-detail__meta-value {
-  font-size: var(--body-detail-size);
-  font-weight: var(--font-weight-regular);
-  color: var(--color-cork-border);
-}
-
-.case-detail__meta-label + .case-detail__meta-value {
-  margin-top: var(--spacing-12);
-}
-
 /* ---------- SECTION ROW (label + content, shared by Context/Goal/Approach) ---------- */
 
 .case-detail__row {
@@ -1400,8 +1369,8 @@ body.about-open .about-meta {
 
 .case-detail__columns p {
   margin: 0;
-  font-size: var(--body-detail-size);
-  line-height: var(--leading-body-detail);
+  font-size: var(--body-lead-size);
+  line-height: var(--leading-body-lead);
   color: var(--color-grey);
 }
 
@@ -1507,7 +1476,7 @@ body.about-open .about-meta {
   border-top: none;
   padding-top: 0;
   padding-left: 20px;
-  color: var(--text-primary);
+  color: var(--color-grey);
 }
 
 /* Small square marker echoing .story__progress-marker's rectangular
@@ -1576,8 +1545,8 @@ body.about-open .about-meta {
 .case-detail__goal-item-heading {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: var(--font-weight-bold);
-  font-size: var(--body-lead-size);
+  font-weight: var(--font-weight-semibold);
+  font-size: clamp(16px, 1.3vw, 19px);
   color: var(--color-walnut-shadow);
 }
 
@@ -1697,8 +1666,8 @@ body.about-open .about-meta {
    quieter base .case-detail__decision-body tier. */
 .case-detail__row--evolution .case-detail__decision-body,
 .case-detail__row--approach .case-detail__decision-body {
-  font-size: var(--body-secondary-size);
-  line-height: 1.6;
+  font-size: var(--body-lead-size);
+  line-height: var(--leading-body-lead);
   color: var(--color-grey);
 }
 
@@ -1737,8 +1706,8 @@ body.about-open .about-meta {
 .case-detail__decision-body {
   margin: 0;
   max-width: 60ch;
-  font-size: var(--body-detail-size);
-  line-height: var(--leading-body-detail);
+  font-size: var(--body-lead-size);
+  line-height: var(--leading-body-lead);
   color: var(--color-grey);
 }
 
@@ -1826,8 +1795,8 @@ body.about-open .about-meta {
 
 .case-detail__overview-secondary {
   margin: 0;
-  font-size: var(--body-detail-size);
-  line-height: var(--leading-body-detail);
+  font-size: var(--body-lead-size);
+  line-height: var(--leading-body-lead);
   color: var(--color-grey);
 }
 
@@ -1962,17 +1931,14 @@ body.about-open .about-meta {
 .case-detail__research-subhead {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: var(--font-weight-bold);
-  font-size: 14px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--color-brand-red);
+  font-weight: var(--font-weight-semibold);
+  font-size: clamp(16px, 1.3vw, 19px);
+  color: var(--color-walnut-shadow);
 }
 
 /* ---- Product Evolution before/after: label stacked above the two
    columns (like the Impact row's label-above-grid treatment) rather than
-   beside them, line-topped bold header, before points in grey and after
-   points in near-black. ---- */
+   beside them, before points in grey and after points in near-black. ---- */
 .case-detail__row--before-after {
   display: block;
 }
@@ -1995,10 +1961,6 @@ body.about-open .about-meta {
 
 .case-detail__row--before-after .case-detail__columns > *:nth-child(2) {
   grid-column: 2;
-}
-
-.case-detail__row--before-after .case-detail__research-subhead {
-  color: var(--color-walnut-shadow);
 }
 
 .case-detail__row--before-after .case-detail__bullets li {
@@ -2055,9 +2017,13 @@ body.about-open .about-meta {
   gap: var(--spacing-24);
 }
 
-/* 04 — onboarding-into-dashboard before/after: full-width row, side by side. */
+/* 04 — onboarding-into-dashboard before/after: full-width row, side by side.
+   Gap matches the text/image column-gap used elsewhere in this row
+   (.case-detail__row--evolution .case-detail__decision) so each before/after
+   image renders at the same width as point 02's single decision image. */
 .case-detail__decision .case-detail__key-decision-compare {
   flex-direction: row;
+  gap: var(--spacing-62);
 }
 
 .case-detail__decision .case-detail__compare-item {
@@ -2132,13 +2098,10 @@ body.about-open .about-meta {
   gap: var(--spacing-62) var(--spacing-62);
 }
 
-/* Label stays alone in the left column; headline and body paragraph
-   stack together in the right column (the 2-column split keeps its width
-   matched to the Goal/Approach columns below). */
 #case-detail-3 .case-detail__row--problem {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   row-gap: var(--spacing-24);
-  align-items: baseline;
+  align-items: start;
 }
 
 #case-detail-3 .case-detail__row--problem .case-detail__label {
@@ -2146,9 +2109,12 @@ body.about-open .about-meta {
   grid-row: 1;
 }
 
+/* Heading stays in the left column, the same track width as the Goal
+   section's left column below (#case-detail-3 .case-detail__row--goal
+   .case-detail__goal-content: identical repeat(2, minmax(0, 1fr)) split). */
 #case-detail-3 .case-detail__row--problem .case-detail__intro-heading {
-  grid-column: 2;
-  grid-row: 1;
+  grid-column: 1;
+  grid-row: 2;
 }
 
 #case-detail-3 .case-detail__row--problem .case-detail__impact-content {
@@ -2171,6 +2137,11 @@ body.about-open .about-meta {
 
 #case-detail-3 .case-detail__row--impact .case-detail__impact-grid {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+#case-detail-3 .case-detail__row--impact .case-detail__impact-item {
+  padding-top: 0;
+  border-top: none;
 }
 
 #case-detail-3 .case-detail__row--problem .case-detail__impact-item {
@@ -2218,8 +2189,8 @@ body.about-open .about-meta {
 }
 
 .case-detail__impact-item .case-detail__decision-body {
-  font-size: var(--body-secondary-size);
-  line-height: 1.6;
+  font-size: var(--body-lead-size);
+  line-height: var(--leading-body-lead);
   max-width: 42ch;
   color: var(--color-grey);
   opacity: 1;
@@ -2238,8 +2209,8 @@ body.about-open .about-meta {
 
 .case-detail__reflection-body p {
   margin: 0;
-  font-size: var(--body-secondary-size);
-  line-height: 1.6;
+  font-size: var(--body-lead-size);
+  line-height: var(--leading-body-lead);
   color: var(--color-grey);
 }
 
@@ -2285,7 +2256,7 @@ body.about-open .about-meta {
   border-top: none;
   font-size: var(--body-lead-size);
   line-height: var(--leading-body-lead);
-  color: var(--color-cork-border);
+  color: var(--color-grey);
 }
 
 /* Same small rectangle marker used for bullets elsewhere on the page
@@ -2367,85 +2338,37 @@ body.about-open .about-meta {
    below) — one mechanism per boundary. */
 
 /* ---- Overview: shared component (label, headline, lead/secondary body
-   copy, Timeline/Scope/Team meta grid) — primary content left, Timeline/
-   Scope/Team right, the same left-primary/right-secondary column logic as
-   Problem (text left, image right) and Reflection (quote left, commentary
-   right). Reused by any row carrying .case-detail__row--overview — not
-   specific to one case study. ---- */
+   copy, ledger rail) — primary content left, ledger right, the same
+   left-primary/right-secondary column logic as Problem (text left, image
+   right) and Reflection (quote left, commentary right). The three case
+   studies share .case-detail__overview-col-text, .case-detail__overview-
+   ledger and the .case-detail__ledger-* component below, but each defines
+   its own #case-detail-N .case-detail__row--overview grid immediately
+   following, aligned to whatever that case's own Problem-image and/or
+   Impact-grid geometry gives it to align with (see each block's comment).
 
-/* #case-detail-1 .case-detail__row above (ID + class, specificity 1-1-0)
-   resets every row in this case study to display:block, which beats the
-   shared .case-detail__row--overview rule below on specificity alone
-   (class only, 0-1-0) regardless of source order — unlike Problem/
-   Research, which opt back out via their own #case-detail-1-scoped rules.
-   Overview needs the same ID-scoped opt-out here.
-
-   Case study 1 uses its own explicit 3-column grid below, not the shared
-   one further down, so two different alignments hold at once:
-   - text ends exactly where the Problem row's image starts, i.e. the
-     Problem grid's own column1-end (50% of this row's width, plus half
-     Problem's fixed column-gap — the same math as .case-detail__row--
-     hypothesis .case-detail__goal-grid's margin-top above, applied to a
-     width instead of a length);
-   - the ledger's label column lines up with "Static to interactive", the
-     third column of the Impact grid (#case-detail-1 .case-detail__impact-
-     grid — repeat(auto-fit, minmax(240px, 1fr)) resolving to 3 equal
-     tracks at this width, gap clamp(40px, 4vw, 60px)).
-   Column 2 here is an unlabeled spacer absorbing the gap between those
-   two independently-computed boundaries — its width is whatever's left
-   between text-end and ledger-start, which can differ from either
-   section's own gap. Both items are pinned to grid-row: 1 (no spanning),
-   so — unlike the shared 3-row grid below, where a much-taller ledger
-   spanning several auto rows would stretch them and blow out the
-   heading-to-body gap on the left — there's no row-growth risk here. */
-#case-detail-1 .case-detail__row--overview {
-  --impact-col-gap: clamp(40px, 4vw, 60px);
-  display: grid;
-  grid-template-columns:
-    calc(50% + (var(--spacing-62) / 2))
-    calc((100% / 6) + (var(--impact-col-gap) * 2 / 3) - (var(--spacing-62) / 2))
-    calc((100% / 3) - (var(--impact-col-gap) * 2 / 3));
-  column-gap: 0;
-}
-
-#case-detail-1 .case-detail__overview-col-text {
+   #case-detail-N .case-detail__row above (ID + class, specificity 1-1-0)
+   resets every row in that case study to display:block, which beats a
+   shared class-only rule on specificity alone regardless of source order
+   — unlike Problem/Research, which opt back out via their own
+   #case-detail-N-scoped rules, Overview needs its grid declared ID-scoped
+   directly to win that fight. */
+#case-detail-1 .case-detail__overview-col-text,
+#case-detail-2 .case-detail__overview-col-text,
+#case-detail-3 .case-detail__overview-col-text {
   grid-column: 1;
   grid-row: 1;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-24);
   min-width: 0;
-}
-
-.case-detail__row--overview {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: var(--spacing-62);
-  row-gap: var(--spacing-24);
-  align-items: start;
-}
-
-/* Flattened so label/headline/body-stack become direct items of the row
-   grid — this lets the meta grid's row-start land exactly at the
-   body-stack's row-start (label-row height + heading-row height + the two
-   row-gaps) with no measured/guessed offset. */
-.case-detail__overview-col-text {
-  display: contents;
-}
-
-.case-detail__overview-col-text .case-detail__label {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.case-detail__row--overview .case-detail__intro-heading {
-  grid-column: 1;
-  grid-row: 2;
+  /* Caps the heading + body measure to match Problem/Research's column
+     width (~620px) instead of the full 1fr text track, which is wider
+     here only because it's sized off the ledger/Impact-grid math above. */
+  max-width: 620px;
 }
 
 .case-detail__overview-col-text .case-detail__body-stack {
-  grid-column: 1;
-  grid-row: 3;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-18);
@@ -2467,100 +2390,119 @@ body.about-open .about-meta {
   color: var(--color-grey);
 }
 
-/* Timeline / Scope / Team sit side by side in the right column, top-
-   aligned with the body text (not the headline) via the grid-row
-   placement above — each value stacks on its own line via
-   .case-detail__meta-col's flex gap. align-items is "start", not
-   "baseline": each column is itself a column flex container, and
-   browsers disagree on how to synthesize a baseline for a multi-line
-   flex column (it shifts with item count), which throws Team - the
-   only column with 4 lines instead of 1-3 - out of line with Timeline
-   and Scope. Starting all three at their shared top edge sidesteps
-   that ambiguity entirely, since every column's first child is a
-   label at the same font-size/line-height. */
-.case-detail__overview-col-meta {
+/* margin-top skips past the "01 / Overview" label + its gap so the rail's
+   top rule lands level with the intro-heading next to it, using the same
+   measured label-height + gap formula as .case-detail__row--hypothesis
+   .case-detail__goal-grid above. grid-column defaults to 2 (the plain
+   text|ledger split used by case studies 2 and 3); case 1's 3-column grid
+   overrides it to 3. */
+#case-detail-1 .case-detail__overview-ledger,
+#case-detail-2 .case-detail__overview-ledger,
+#case-detail-3 .case-detail__overview-ledger {
   grid-column: 2;
-  grid-row: 3;
-  align-self: start;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: var(--spacing-24);
-  align-items: start;
-}
-
-/* Labels and values read as body copy, matching the paragraph text next
-   to them, instead of a small bold field-label style. */
-.case-detail__overview-col-meta .case-detail__meta-label,
-.case-detail__overview-col-meta .case-detail__meta-value {
-  font-size: var(--body-detail-size);
-  font-weight: var(--font-weight-regular);
-  line-height: 1.5;
-}
-
-/* Labels are uppercase and grey, distinct from the values but not
-   competing with the maroon accent reserved for the section label. */
-.case-detail__overview-col-meta .case-detail__meta-label {
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: var(--color-grey);
-}
-
-/* Values read as plain body text — never the cork-border/maroon tone
-   used for secondary paragraph copy elsewhere on this page. */
-.case-detail__overview-col-meta .case-detail__meta-value {
-  color: var(--color-walnut-shadow);
-}
-
-/* ---- Overview ledger rail (case study 1 only): a single-column right-hand
-   spec list replacing the three-column Timeline/Scope/Team meta grid used
-   by case studies 2 and 3 above. Each row is its own label/value grid with
-   a hairline rule between rows only — :first-child opts out so there's no
-   divider above Timeline, and with no trailing closer row there's none
-   below Team either. margin-top skips past the "01 / Overview" label + its
-   gap so the rail's top rule lands level with the intro-heading next to
-   it, using the same measured label-height + gap formula as
-   .case-detail__row--hypothesis .case-detail__goal-grid above. */
-#case-detail-1 .case-detail__overview-ledger {
-  grid-column: 3;
   grid-row: 1;
   min-width: 0;
   align-self: start;
   margin-top: calc(var(--spacing-24) + (12px * var(--leading-heading)));
 }
 
-#case-detail-1 .case-detail__ledger-row {
+/* ---- Overview grid (Configurator): three tracks, not two. Text is pinned
+   to the exact same formula as Problem's own column (row width minus one
+   column-gap, halved) so the two columns are pixel-identical at every
+   viewport, not just near the ~1300px reference width a fixed max-width
+   cap would only happen to match. The middle track is a flexible spacer
+   that absorbs whatever's left; the ledger keeps its original formula so
+   its label column still lines up with "Static to interactive", the
+   third column of the Impact grid (#case-detail-1 .case-detail__impact-
+   grid — repeat(auto-fit, minmax(240px, 1fr)) resolving to 3 equal tracks
+   at this width, gap clamp(40px, 4vw, 60px)) — see
+   .case-detail__overview-ledger's grid-column:3 override below. ---- */
+#case-detail-1 .case-detail__row--overview {
+  --impact-col-gap: clamp(40px, 4vw, 60px);
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
-  gap: 24px;
-  padding: 16px 0 18px;
-  border-top: 1px solid #e4e0db;
+  grid-template-columns: calc((100% - var(--spacing-62)) / 2) 1fr calc((100% / 3) - (var(--impact-col-gap) * 2 / 3));
+  column-gap: var(--spacing-62);
 }
 
-#case-detail-1 .case-detail__ledger-row:first-child {
+#case-detail-1 .case-detail__overview-ledger {
+  grid-column: 3;
+}
+
+/* ---- Overview grid (Portfolio): case 2 has neither a same-page Impact
+   grid nor a reason of its own to set the ledger's width, so instead of
+   deriving one from local geometry (as Configurator and Onboarding do),
+   it just reuses Configurator's ledger-width formula directly — same
+   clamp(40px, 4vw, 60px) column-gap constant — so all three case studies'
+   ledgers render at the same width. Text is 1fr, filling whatever's left
+   of the row's width once that fixed ledger column and the gap between
+   them are accounted for. ---- */
+#case-detail-2 .case-detail__row--overview {
+  --impact-col-gap: clamp(40px, 4vw, 60px);
+  display: grid;
+  grid-template-columns: 1fr calc((100% / 3) - (var(--impact-col-gap) * 2 / 3));
+  column-gap: var(--spacing-62);
+}
+
+/* ---- Overview grid (Onboarding): the mirror image of Portfolio's — case
+   3 has an Impact grid (#case-detail-3 .case-detail__row--impact
+   .case-detail__impact-grid) but no Problem image to align text to. Its
+   Impact grid only overrides grid-template-columns, not gap, so — unlike
+   Configurator's, which sets its own clamp(40px, 4vw, 60px) column-gap —
+   it falls back to the base .case-detail__impact-grid gap, var(--spacing-
+   62) both ways; --impact-col-gap here matches that. The ledger column is
+   set to that Impact grid's own column-3 width; with only two columns
+   here, "1fr" for the text column necessarily fills everything left over,
+   which pins the ledger's start to exactly the same position (100% minus
+   its own width) regardless of the column-gap chosen — the column-gap
+   below is just the standard breathing room, not part of the alignment
+   math (it happens to reuse the same var(--spacing-62) token as
+   --impact-col-gap, but the two are independent). ---- */
+#case-detail-3 .case-detail__row--overview {
+  --impact-col-gap: var(--spacing-62);
+  display: grid;
+  grid-template-columns: 1fr calc((100% / 3) - (var(--impact-col-gap) * 2 / 3));
+  column-gap: var(--spacing-62);
+}
+
+/* ---- Ledger rail: a single-column right-hand spec list replacing the
+   old three-column Timeline/Scope/Team meta grid, shared by all three
+   case studies' Overview sections above. Each row is its own label/value
+   grid with a hairline rule between rows only — :first-child opts out so
+   there's no divider above Timeline, and with no trailing closer row
+   there's none below Team either. ---- */
+.case-detail__ledger-row {
+  display: grid;
+  grid-template-columns: var(--spacing-96) minmax(0, 1fr);
+  gap: var(--spacing-24);
+  padding: 16px 0 var(--spacing-18);
+  border-top: var(--line-hairline) solid var(--color-hairline-on-white);
+}
+
+.case-detail__ledger-row:first-child {
   border-top: none;
 }
 
-#case-detail-1 .case-detail__ledger-label {
+.case-detail__ledger-label {
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--color-grey);
 }
 
-#case-detail-1 .case-detail__ledger-value {
+.case-detail__ledger-value {
   font-size: 16px;
-  color: #16110f;
+  color: var(--color-walnut-shadow);
 }
 
-#case-detail-1 .case-detail__ledger-value--list {
+.case-detail__ledger-value--list {
   display: flex;
   flex-direction: column;
   gap: 7px;
 }
 
-#case-detail-1 .case-detail__ledger-highlight {
-  color: #16110f;
+.case-detail__ledger-highlight {
+  color: var(--color-walnut-shadow);
 }
 
 /* ---- Problem: text column (label, headline, body, limitations) beside a portrait image ---- */
@@ -2835,6 +2777,11 @@ body.about-open .about-meta {
   line-height: 0.9;
 }
 
+#case-detail-1 .case-detail__impact-item {
+  padding-top: 0;
+  border-top: none;
+}
+
 /* No Configurator-specific override needed here — the sitewide
    .case-detail__impact-item .case-detail__decision-heading default is now
    DM Sans/18.72px/600, the same value this used to require a scoped
@@ -2851,6 +2798,32 @@ body.about-open .about-meta {
   column-gap: var(--spacing-62);
   row-gap: var(--spacing-24);
   align-items: start;
+}
+
+/* Configurator's Reflection sits directly under Impact
+   (#case-detail-1 .case-detail__impact-grid: 3 equal tracks, gap
+   var(--spacing-62) clamp(40px, 4vw, 60px)) — quote spans the first two
+   of those tracks (+ the gap between them), body takes the third, so
+   both edges land on the same column lines as the stat cards above. */
+#case-detail-1 .case-detail__row--reflection {
+  --impact-col-gap: clamp(40px, 4vw, 60px);
+  grid-template-columns:
+    calc((100% * 2 / 3) - (var(--impact-col-gap) / 3))
+    calc((100% / 3) - (var(--impact-col-gap) * 2 / 3));
+  column-gap: var(--impact-col-gap);
+}
+
+/* Onboarding's Reflection sits directly under Impact too
+   (#case-detail-3 .case-detail__row--impact .case-detail__impact-grid:
+   3 equal tracks, but unlike Configurator's it never overrides the base
+   .case-detail__impact-grid gap, so both axes stay var(--spacing-62)) —
+   same quote-spans-two/body-takes-third split as case 1, just with the
+   row's own gap standing in for --impact-col-gap. */
+#case-detail-3 .case-detail__row--reflection {
+  grid-template-columns:
+    calc((100% * 2 / 3) - (var(--spacing-62) / 3))
+    calc((100% / 3) - (var(--spacing-62) * 2 / 3));
+  column-gap: var(--spacing-62);
 }
 
 #case-detail-1 .case-detail__row--reflection > .case-detail__label,
@@ -2882,16 +2855,17 @@ body.about-open .about-meta {
   margin-top: 0;
 }
 
-#case-detail-1 .case-detail__reflection-body {
-  max-width: 480px;
-}
-
-/* Case 2's reflection row otherwise inherits the shared 1.1fr/1fr quote+body
-   split, which lands the body column ~29px off from the equal 50/50 split
-   used by every other row in this case study (Before/After, Hypothesis,
-   Problem) — realign it so the right column reads on the same edge. */
+/* Portfolio's Reflection sits directly under Product Evolution
+   (#case-detail-2 .case-detail__row--before-after — no local override, so
+   it's the shared base .case-detail__row grid: label / Before / After as
+   3 equal 1fr tracks, gap var(--spacing-62)) — same quote-spans-two/
+   body-takes-third split as cases 1 and 3: quote covers the label +
+   Before tracks, body lands exactly on the After track. */
 #case-detail-2 .case-detail__row--reflection {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns:
+    calc((100% * 2 / 3) - (var(--spacing-62) / 3))
+    calc((100% / 3) - (var(--spacing-62) * 2 / 3));
+  column-gap: var(--spacing-62);
 }
 
 /* ---- Footer: hairline rule, two zones on one shared baseline ----
@@ -3078,12 +3052,17 @@ body.about-open .about-meta {
   .case-detail__row--evolution .case-detail__decision-text,
   .case-detail__row--evolution .case-detail__decision-figure { grid-column: 1; grid-row: auto; }
   .case-detail__impact-grid { grid-template-columns: 1fr; }
-  .case-detail__decision .case-detail__key-decision-compare { flex-direction: column; }
+  #case-detail-1 .case-detail__impact-grid,
+  #case-detail-2 .case-detail__impact-grid,
+  #case-detail-3 .case-detail__row--impact .case-detail__impact-grid { grid-template-columns: 1fr; }
+  .case-detail__decision .case-detail__key-decision-compare { flex-direction: column; gap: var(--spacing-24); }
   #case-detail-3 .case-detail__row--problem { grid-template-columns: 1fr; }
   #case-detail-3 .case-detail__row--problem .case-detail__label,
   #case-detail-3 .case-detail__row--problem .case-detail__intro-heading,
   #case-detail-3 .case-detail__row--problem .case-detail__impact-content { grid-column: 1; grid-row: auto; }
   #case-detail-3 .case-detail__row--problem .case-detail__impact-grid { grid-template-columns: 1fr; }
+  #case-detail-3 .case-detail__row--problem .case-detail__intro-heading,
+  #case-detail-3 .case-detail__row--problem .case-detail__overview-lead { max-width: none; }
   #case-detail-1 .case-detail__row--reflection,
   #case-detail-2 .case-detail__row--reflection,
   #case-detail-3 .case-detail__row--reflection { grid-template-columns: 1fr; }
@@ -3094,16 +3073,15 @@ body.about-open .about-meta {
   #case-detail-3 .case-detail__reflection-quote,
   #case-detail-3 .case-detail__reflection-body { grid-column: 1; max-width: none; }
 
-  .case-detail__row--overview { grid-template-columns: 1fr; row-gap: var(--spacing-24); }
-  .case-detail__row--overview .case-detail__label,
-  .case-detail__row--overview .case-detail__intro-heading,
-  .case-detail__row--overview .case-detail__body-stack,
-  .case-detail__overview-col-meta { grid-column: 1; grid-row: auto; }
-  .case-detail__overview-col-meta { grid-template-columns: 1fr; row-gap: var(--spacing-24); }
-
-  #case-detail-1 .case-detail__row--overview { grid-template-columns: 1fr; row-gap: var(--spacing-24); }
-  #case-detail-1 .case-detail__overview-col-text { grid-column: 1; grid-row: 1; }
-  #case-detail-1 .case-detail__overview-ledger { grid-column: 1; grid-row: 2; margin-top: 0; }
+  #case-detail-1 .case-detail__row--overview,
+  #case-detail-2 .case-detail__row--overview,
+  #case-detail-3 .case-detail__row--overview { grid-template-columns: 1fr; row-gap: var(--spacing-24); column-gap: 0; }
+  #case-detail-1 .case-detail__overview-col-text,
+  #case-detail-2 .case-detail__overview-col-text,
+  #case-detail-3 .case-detail__overview-col-text { grid-column: 1; grid-row: 1; max-width: none; }
+  #case-detail-1 .case-detail__overview-ledger,
+  #case-detail-2 .case-detail__overview-ledger,
+  #case-detail-3 .case-detail__overview-ledger { grid-column: 1; grid-row: 2; margin-top: 0; }
 
   #case-detail-1 .case-detail__row--problem,
   #case-detail-2 .case-detail__row--problem { grid-template-columns: 1fr; }
@@ -3112,7 +3090,7 @@ body.about-open .about-meta {
   #case-detail-2 .case-detail__row--problem .case-detail__intro-heading,
   #case-detail-2 .case-detail__row--problem .case-detail__overview-secondary { max-width: none; }
 
-  #case-detail-1 .case-detail__research-heading { max-width: none; }
+  #case-detail-1 .case-detail__research-heading { max-width: none; white-space: normal; }
   #case-detail-1 .case-detail__research-columns { grid-template-columns: 1fr; row-gap: var(--spacing-24); }
   #case-detail-1 .case-detail__research-lead { max-width: none; }
 

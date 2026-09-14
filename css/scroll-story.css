@@ -343,7 +343,7 @@ body.about-open .story__progress {
   top: 0;
   bottom: 0;
   width: var(--line-hairline);
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.6);
   transition: opacity 0.3s ease;
 }
 
@@ -371,9 +371,9 @@ body.about-open .story__progress {
 .story__progress-marker {
   position: absolute;
   top: 0;
-  left: -2px;
-  width: 5px;
-  height: 5px;
+  left: -3px;
+  width: 7px;
+  height: 7px;
   background: var(--color-brand-red);
   transform: translateY(-50%);
   transition: transform 0.5s ease, background 0.4s ease, opacity 0.3s ease;
@@ -407,6 +407,7 @@ body.about-open .story__progress {
   font-size: 12px;
   font-weight: var(--font-weight-regular);
   color: var(--text-tertiary);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
   opacity: 1;
   transition: opacity 0.4s ease;
 }

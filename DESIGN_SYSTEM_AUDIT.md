@@ -320,3 +320,31 @@ None. Every issue named in the approved scope (mobile case-detail padding, quote
 ### Final consistency score: 91 / 100
 
 Up from 78/100. The Critical issue and all High Priority items are resolved; the token system is now free of dead entries and the one duplicate color; both cross-file component duplications (quote, list) share their indentation token even though their context-appropriate typographic differences remain by design. The remaining 9 points reflect the Medium/Low priority items intentionally deferred above (the clamp/caption/measure near-duplicates, the icon-button size split, and a couple of undocumented-but-functionally-correct exceptions) — real, minor, and appropriate to fold into a later typography-consolidation pass rather than this one.
+
+---
+
+## Drift Audit — 2026-09-14
+
+Scope: everything since this file's baseline (commit `2fba0c0`) — commits `133e4c9`, `776b6b1`, and the working-tree changes to `css/styles.css`/`index.html` in place at the time of this pass. Read-only diff against the accepted baseline above; not a re-run of the full audit.
+
+### High Priority (both fixed)
+
+1. **New shared ledger component (`.case-detail__ledger-*`, introduced in `776b6b1`) hardcoded five values that duplicate existing exact-match tokens, and had just been generalized from case-1-only to all three case studies.** `border-top: 1px solid #e4e0db` (new one-off hex, not `var(--color-image-stroke)` or any documented color), `color: #16110f` ×2 (near-duplicate of `--color-walnut-shadow`'s `#100904`), `gap: 24px` (matches `--spacing-24`), `padding: 16px 0 18px` (`18px` matches `--spacing-18`), `grid-template-columns: 96px minmax(0,1fr)` (`96px` matches `--spacing-96`), and `letter-spacing: 0.14em` on the label (every other uppercase micro-label site-wide uses `0.02em`). **Fixed:** `grid-template-columns` → `var(--spacing-96) minmax(0, 1fr)`; `gap` → `var(--spacing-24)`; padding's `18px` → `var(--spacing-18)` (the `16px` top value has no matching token and was left as a literal); `border-top` → `var(--line-hairline) solid var(--color-hairline-on-white)`; `.case-detail__ledger-value`/`.case-detail__ledger-highlight` color → `var(--color-walnut-shadow)`; `.case-detail__ledger-label` letter-spacing → `0.02em`. For `#e4e0db`, checked whether it could simply reuse `--color-image-stroke` (`rgba(16,9,4,0.2)`) instead of adding a new token: composited over the `.case-detail` section's `var(--color-off-white)` background, `--color-image-stroke` renders as ≈`#cfcecd` — visibly cooler/darker than `#e4e0db`'s warm light beige (~20/255 per channel) — so reusing it would have caused a visible mismatch. Added a new token, `--color-hairline-on-white: #e4e0db` ([styles.css:12](css/styles.css#L12)), instead.
+2. **`.case-card__desc` (homepage case-list description) had reverted from a fluid `clamp()` to a fixed `16px`,** breaking the site's documented rule that fluid `clamp()`/`vw` typography (not discrete breakpoints) carries type between 980px and large viewports — `.case-card__desc` was never one of the three named exceptions to that rule. **Fixed:** restored `font-size: clamp(14px, 1.05vw, 21px)` ([styles.css:1050](css/styles.css#L1050)), the exact baseline value, so it scales in proportion to its sibling `.case-card__title` again. `max-width` (currently `40vw`, baseline `35vw`) was left untouched — not part of the approved fix, and plausibly a deliberate width change independent of the typography regression.
+
+### Medium/Low and FYIs (left as-is, per instruction — not part of this pass's approved fixes)
+
+- New hardcoded red `rgba(139, 40, 40, 0.85)`, used 3× for the About-tab hover/text-fill treatment ([styles.css:845](css/styles.css#L845), [:882](css/styles.css#L882), [:917](css/styles.css#L917)) — a near-duplicate of `--color-brand-red` (`#7c1e1e`), consistent across its uses but untokenized. Worth a decision before it spreads further; deferred.
+- `.about-meta a` gap changed from `6px` (exact match for `--spacing-6`) to hardcoded `6.5px` ([styles.css:1209](css/styles.css#L1209)) — sub-pixel fine-tuning, low impact, deferred.
+- `.case-detail__row--evolution .case-detail__decision-caption`'s dedicated muted/opacity-0.45 override was removed, folding it back into the shared caption style — a simplification, not flagged as a fix; worth a Visual QA glance but not a design-system issue.
+- `--color-grey` changed from `#8c8c8c` to `#737373` (WCAG AA contrast fix, documented in-code) — intentional, confirmed not drift.
+- `--color-case-accent` (`#7c1e1e`) already matched `--color-brand-red` byte-for-byte as of the baseline commit; `DESIGN_SYSTEM.md` §1.1 documents it as `#7d0000` — predates this audit's window, not new drift.
+- `.story__progress.is-on-light .story__progress-marker`'s default color changed from `--color-off-white` to `--color-brand-red` (override removed) — token-driven and intentional; a Visual QA check against light-background sections was suggested but not required for this pass.
+
+### Verification
+
+Confirmed zero remaining references to `#16110f` or `#e4e0db` anywhere in `css/styles.css` after the fix (the latter now exists only as the new token's declared value). No other selectors referenced the old hardcoded values.
+
+### Score impact
+
+Both High findings from this drift window are resolved with no visible layout or color change (the ledger's rendered colors/spacing are pixel-identical; the restored `clamp()` reintroduces the intended fluid scaling). The deferred Medium/Low items are the same class of minor, non-urgent drift the prior pass already carries forward — they don't move the 91/100 baseline on their own; a future consolidation pass covering the new `rgba(139,40,40,0.85)` accent and the `6.5px` gap would be the next opportunity to close them out.
