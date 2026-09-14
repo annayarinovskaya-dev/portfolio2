@@ -8,7 +8,7 @@
   --color-case-accent: #7c1e1e;
   --color-off-white: #ffffff;
   --color-image-stroke: rgba(16, 9, 4, 0.2);
-  --color-grey: #8c8c8c;
+  --color-grey: #737373; /* darkened from #8c8c8c: 3.36:1 on white failed WCAG AA; #737373 gives 4.74:1 */
 
   /* White text opacity hierarchy — for text sitting on dark/photo
      backgrounds only (not backgrounds/borders, which keep --color-off-white). */
@@ -173,8 +173,7 @@ ul { list-style: none; margin: 0; padding: 0; }
    straight clip. The recording is a crisp, evenly-lit screen capture; the
    photo behind it is a warm, sunlit desk scene, so a subtle filter is
    applied directly here to knock down brightness/contrast/saturation and
-   shift it toward the same beige/honey cast — see .hero__screen-video-grade
-   below for the matching soft-light overlay that reinforces that warmth. */
+   shift it toward the same beige/honey cast. */
 .hero__screen-video {
   position: absolute;
   z-index: 1;
@@ -182,43 +181,12 @@ ul { list-style: none; margin: 0; padding: 0; }
   object-fit: cover;
   background: #e4e4e0;
   opacity: 0;
-  filter: brightness(0.93) contrast(0.94) saturate(0.82) sepia(0.08);
+  filter: brightness(0.93) contrast(0.94) saturate(0.82);
   transition: opacity 0.35s ease;
   pointer-events: none;
 }
 
 .hero__screen-video.is-visible {
-  opacity: 1;
-}
-
-/* Warm color-grade for the screen video: a soft-light tint + vignette,
-   positioned/clipped from the exact same rect and clip-path as
-   .hero__screen-video (see positionScreenVideo() in main.js, which sets
-   both elements' geometry from one shared computation so they can't drift
-   out of registration) rather than an independent, unwarped rectangle.
-   Tint values sampled from the desk photo's beige wall and wood tones. */
-.hero__screen-video-grade {
-  position: absolute;
-  z-index: 2;
-  background:
-    radial-gradient(
-      120% 120% at 50% 50%,
-      rgba(0, 0, 0, 0) 55%,
-      rgba(30, 22, 14, 0.12) 100%
-    ),
-    linear-gradient(
-      135deg,
-      rgba(196, 168, 138, 0.22) 0%,
-      rgba(196, 168, 138, 0.09) 45%,
-      rgba(196, 168, 138, 0) 100%
-    );
-  mix-blend-mode: soft-light;
-  opacity: 0;
-  transition: opacity 0.35s ease;
-  pointer-events: none;
-}
-
-.hero__screen-video-grade.is-visible {
   opacity: 1;
 }
 
@@ -998,7 +966,7 @@ body.about-open .side-tab {
   font-weight: var(--font-weight-regular);
   line-height: 1.4;
   color: var(--text-secondary);
-  max-width: 35vw;
+  max-width: 40vw;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
@@ -1314,7 +1282,7 @@ body.about-open .about-meta {
   margin: 0;
   font-size: var(--body-detail-size);
   line-height: var(--leading-body-detail);
-  color: var(--color-cork-border);
+  color: var(--color-grey);
 }
 
 /* ---------- GOAL ---------- */
@@ -1434,6 +1402,76 @@ body.about-open .about-meta {
   background: var(--color-off-white);
 }
 
+/* ---- Hypothesis & Constraints: drop the shared goal band's full-bleed
+   accent treatment for this row only — reads as a normal in-flow section,
+   text sized to match the rest of the case study instead of the callout
+   scale/color used elsewhere for .case-detail__row--goal. ---- */
+.case-detail__row--hypothesis.case-detail__row--goal {
+  display: block;
+  margin-inline: 0;
+  padding: 0;
+  background: none;
+}
+
+.case-detail__row--hypothesis .case-detail__goal-content {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--spacing-62);
+  row-gap: var(--spacing-48);
+  align-items: start;
+}
+
+.case-detail__row--hypothesis .case-detail__goal-grid {
+  grid-column: 2;
+  margin-top: calc(var(--spacing-24) + (12px * var(--leading-heading)));
+}
+
+.case-detail__row--hypothesis .case-detail__label {
+  color: var(--color-case-accent);
+}
+
+.case-detail__row--hypothesis .case-detail__principle {
+  font-family: var(--font-serif);
+  font-weight: var(--font-weight-regular);
+  font-size: clamp(26px, 3.6vw, 52px);
+  line-height: 1.15;
+  color: var(--color-walnut-shadow);
+}
+
+.case-detail__row--hypothesis .case-detail__goal-item {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  padding-top: var(--spacing-12);
+  padding-left: 0;
+  border-top: 1px solid var(--color-image-stroke);
+}
+
+.case-detail__row--hypothesis .case-detail__goal-item:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.case-detail__goal-item-heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--body-lead-size);
+  color: var(--color-walnut-shadow);
+}
+
+.case-detail__goal-item-body {
+  margin: 0;
+  font-size: var(--body-lead-size);
+  line-height: var(--leading-body-lead);
+  color: var(--color-grey);
+}
+
+.case-detail__row--hypothesis .case-detail__goal-item::before {
+  display: none;
+}
+
 /* ---------- APPROACH ---------- */
 
 .case-detail__decisions {
@@ -1484,6 +1522,13 @@ body.about-open .about-meta {
   grid-row: 1;
   border-top: 1px solid var(--color-image-stroke);
   padding-top: var(--spacing-24);
+}
+
+/* Configurator's Design Evolution (case 1) drops the hairline rule that
+   the shared module otherwise draws above each decision's text. */
+#case-detail-1 .case-detail__row--evolution .case-detail__decision-text {
+  border-top: none;
+  padding-top: 0;
 }
 
 .case-detail__row--evolution .case-detail__decision-figure {
@@ -1582,7 +1627,7 @@ body.about-open .about-meta {
   max-width: 60ch;
   font-size: var(--body-detail-size);
   line-height: var(--leading-body-detail);
-  color: var(--color-cork-border);
+  color: var(--color-grey);
 }
 
 .case-detail__decision-image {
@@ -1671,7 +1716,7 @@ body.about-open .about-meta {
   margin: 0;
   font-size: var(--body-detail-size);
   line-height: var(--leading-body-detail);
-  color: var(--color-cork-border);
+  color: var(--color-grey);
 }
 
 .case-detail__row--overview .case-detail__overview-secondary:nth-of-type(1),
@@ -1799,7 +1844,7 @@ body.about-open .about-meta {
   margin: 0;
   font-size: var(--body-lead-size);
   line-height: var(--leading-body-lead);
-  color: var(--color-walnut-shadow);
+  color: var(--color-grey);
 }
 
 .case-detail__research-subhead {
@@ -1810,6 +1855,50 @@ body.about-open .about-meta {
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--color-brand-red);
+}
+
+/* ---- Product Evolution before/after: label stacked above the two
+   columns (like the Impact row's label-above-grid treatment) rather than
+   beside them, line-topped bold header, before points in grey and after
+   points in near-black. ---- */
+.case-detail__row--before-after {
+  display: block;
+}
+
+.case-detail__row--before-after .case-detail__label {
+  grid-column: auto;
+  margin: 0 0 clamp(28px, 5vh, 56px);
+}
+
+.case-detail__row--before-after .case-detail__columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--spacing-62);
+  row-gap: var(--spacing-48);
+}
+
+.case-detail__row--before-after .case-detail__columns > *:nth-child(1) {
+  grid-column: 1;
+}
+
+.case-detail__row--before-after .case-detail__columns > *:nth-child(2) {
+  grid-column: 2;
+}
+
+.case-detail__row--before-after .case-detail__research-subhead {
+  color: var(--color-walnut-shadow);
+}
+
+.case-detail__row--before-after .case-detail__bullets li {
+  font-size: var(--body-lead-size);
+}
+
+.case-detail__row--before-after .case-detail__columns > div:first-child .case-detail__bullets li {
+  color: var(--color-grey);
+}
+
+.case-detail__row--before-after .case-detail__columns > div:last-child .case-detail__bullets li {
+  color: var(--color-walnut-shadow);
 }
 
 /* ---------- DESIGN EVOLUTION ---------- */
@@ -1931,12 +2020,32 @@ body.about-open .about-meta {
   gap: var(--spacing-62) var(--spacing-62);
 }
 
+/* Label alone in row 1; headline (col 1) and the four problem points
+   (col 2) share row 2 so their tops align. The 2-column split (instead of
+   the shared 1/3 + 2/3 grid) also puts the points' left edge at the same
+   50% mark as the Goal/Approach columns below. */
+#case-detail-3 .case-detail__row--problem {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+#case-detail-3 .case-detail__row--problem .case-detail__label {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+#case-detail-3 .case-detail__row--problem .case-detail__intro-heading {
+  grid-column: 1;
+  grid-row: 2;
+}
+
 #case-detail-3 .case-detail__row--problem .case-detail__impact-content {
-  grid-column: 1 / 4;
+  grid-column: 2;
+  grid-row: 2;
 }
 
 #case-detail-3 .case-detail__row--problem .case-detail__impact-grid {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 #case-detail-3 .case-detail__row--impact {
@@ -2026,19 +2135,107 @@ body.about-open .about-meta {
   color: var(--color-grey);
 }
 
-/* ---------- PORTFOLIO CASE STUDY OVERRIDES ---------- */
-/* Final Solution reuses the shared .case-detail__row--evolution module
-   (see Configurator's Design Evolution, and Onboarding's Approach) for its
-   item layout — only this case study's module padding is specific here. */
-#case-detail-2 .case-detail__row--approach {
-  padding: clamp(56px, 11vh, 130px) 0;
+/* ---------- ONBOARDING CASE STUDY OVERRIDES ---------- */
+/* Goal: drop the shared goal band's full-bleed red accent treatment for
+   this case study — reads as a normal in-flow section, text sized to
+   match the rest of the case study instead of the callout scale/color
+   used elsewhere for .case-detail__row--goal. */
+#case-detail-3 .case-detail__row--goal {
+  margin-inline: 0;
+  padding: 0;
+  background: none;
 }
 
-/* ---------- ONBOARDING CASE STUDY OVERRIDES ---------- */
+/* Split the label/principle stack out of its flex wrapper so both become
+   direct grid items of .case-detail__goal-content — lets the principle
+   sit in its own row, with the bullet grid placed alongside it (row 2)
+   instead of alongside the label (row 1). */
+#case-detail-3 .case-detail__row--goal .case-detail__goal-intro {
+  display: contents;
+}
+
+#case-detail-3 .case-detail__row--goal .case-detail__label {
+  grid-column: 1;
+  grid-row: 1;
+  color: var(--color-case-accent);
+}
+
+#case-detail-3 .case-detail__row--goal .case-detail__principle {
+  grid-column: 1;
+  grid-row: 2;
+  font-family: var(--font-serif);
+  font-weight: var(--font-weight-regular);
+  font-size: clamp(26px, 3.6vw, 52px);
+  line-height: 1.15;
+  color: var(--color-walnut-shadow);
+}
+
+#case-detail-3 .case-detail__row--goal .case-detail__goal-item {
+  position: relative;
+  padding-top: 0;
+  padding-left: 20px;
+  border-top: none;
+  font-size: var(--body-lead-size);
+  line-height: var(--leading-body-lead);
+  color: var(--color-cork-border);
+}
+
+/* Same small rectangle marker used for bullets elsewhere on the page
+   (.case-detail__bullets li::before), recolored for the accent bullet
+   motif now that the item no longer sits on the red band. */
+#case-detail-3 .case-detail__row--goal .case-detail__goal-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 6px;
+  height: 6px;
+  background: var(--color-case-accent);
+}
+
+/* Match the Approach section's 50/50 text/image split below, so the goal
+   list's left edge lines up with the image column instead of the shared
+   component's default 3-column (1/3 + 2/3) split. */
+#case-detail-3 .case-detail__row--goal .case-detail__goal-content {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+#case-detail-3 .case-detail__row--goal .case-detail__goal-grid {
+  grid-column: 2;
+  grid-row: 2;
+}
+
 /* Approach reuses the same shared .case-detail__row--evolution module —
    only this case study's module padding is specific here. */
 #case-detail-3 .case-detail__row--approach {
-  padding: clamp(56px, 11vh, 130px) 0;
+  padding: 0;
+}
+
+/* Approach item 03 (onboarding-into-dashboard before/after): drop the
+   text/image side-by-side split for this item only — the point sits full
+   width on its own row, and the before/after compare images move below
+   it, also full width, staying side by side with each other. */
+#case-detail-3 .case-detail__row--approach .case-detail__decisions > .case-detail__decision:nth-child(3) {
+  grid-template-columns: 1fr;
+  row-gap: var(--spacing-31);
+}
+
+#case-detail-3 .case-detail__row--approach .case-detail__decisions > .case-detail__decision:nth-child(3) .case-detail__decision-text {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+#case-detail-3 .case-detail__row--approach .case-detail__decisions > .case-detail__decision:nth-child(3) .case-detail__decision-figure {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+/* Final Solution and Approach both carry .case-detail__row--approach on top
+   of the shared --evolution module (Design Evolution does not), so this
+   opts just those two out of the module's hairline rule above the text. */
+.case-detail__row--approach .case-detail__decision-text {
+  border-top: none;
+  padding-top: 0;
 }
 
 /* ---------- CONFIGURATOR CASE STUDY (case-detail-1) — SECTION LAYOUT ----------
@@ -2118,14 +2315,14 @@ body.about-open .about-meta {
   font-weight: var(--font-weight-regular);
   line-height: var(--leading-body-lead);
   letter-spacing: normal;
-  color: var(--color-walnut-shadow);
+  color: var(--color-grey);
 }
 
 .case-detail__overview-secondary--dim {
   margin: 0;
   font-size: var(--body-secondary-size);
   line-height: var(--leading-body-secondary);
-  color: var(--color-walnut-shadow);
+  color: var(--color-grey);
 }
 
 /* Timeline / Scope / Team sit side by side in the right column, top-
@@ -2199,7 +2396,7 @@ body.about-open .about-meta {
 
 #case-detail-1 .case-detail__row--problem .case-detail__overview-secondary:not(.case-detail__overview-secondary--dim) {
   font-size: var(--body-lead-size);
-  color: var(--color-walnut-shadow);
+  color: var(--color-grey);
 }
 
 /* Limitations list: hairline rule per row, rectangle glyph prefix — overrides
@@ -2280,7 +2477,7 @@ body.about-open .about-meta {
 #case-detail-2 .case-detail__row--problem .case-detail__overview-secondary {
   max-width: 46ch;
   font-size: var(--body-lead-size);
-  color: var(--color-walnut-shadow);
+  color: var(--color-grey);
 }
 
 #case-detail-2 .case-detail__problem-col-image {
@@ -2335,7 +2532,7 @@ body.about-open .about-meta {
   max-width: 46ch;
   font-size: var(--body-lead-size);
   line-height: 1.5;
-  color: var(--color-walnut-shadow);
+  color: var(--color-grey);
 }
 
 #case-detail-1 .case-detail__research-quote {
@@ -2378,7 +2575,7 @@ body.about-open .about-meta {
   padding-left: 18px;
   font-size: var(--body-lead-size);
   line-height: 1.5;
-  color: var(--color-walnut-shadow);
+  color: var(--color-grey);
 }
 
 #case-detail-1 .case-detail__research-findings li::before {
@@ -2494,6 +2691,14 @@ body.about-open .about-meta {
   max-width: 480px;
 }
 
+/* Case 2's reflection row otherwise inherits the shared 1.1fr/1fr quote+body
+   split, which lands the body column ~29px off from the equal 50/50 split
+   used by every other row in this case study (Before/After, Hypothesis,
+   Problem) — realign it so the right column reads on the same edge. */
+#case-detail-2 .case-detail__row--reflection {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 /* ---- Footer: hairline rule, two zones on one shared baseline ----
    Full-bleed like .case-detail__row--goal: cancels the section's own
    left/right padding via negative margin, then re-pads to the same
@@ -2581,7 +2786,7 @@ body.about-open .about-meta {
   .side-nav { right: var(--spacing-18); }
   .hero__photo, .hero__video { object-position: 60% center; }
   .hero { padding-bottom: var(--spacing-18); display: flex; flex-direction: column; justify-content: flex-end; }
-  .hero__screen, .hero__screen-video, .hero__screen-video-grade { display: none; }
+  .hero__screen, .hero__screen-video { display: none; }
 
   /* The screen-rect math assumes a centered object-fit:cover crop; mobile
      shifts object-position, so it'd misalign here — same reason
@@ -2667,7 +2872,10 @@ body.about-open .about-meta {
   .case-detail__row--evolution .case-detail__decision-figure { grid-column: 1; grid-row: auto; }
   .case-detail__impact-grid { grid-template-columns: 1fr; }
   .case-detail__decision .case-detail__key-decision-compare { flex-direction: column; }
-  #case-detail-3 .case-detail__row--problem .case-detail__impact-content { grid-column: 1; }
+  #case-detail-3 .case-detail__row--problem { grid-template-columns: 1fr; }
+  #case-detail-3 .case-detail__row--problem .case-detail__label,
+  #case-detail-3 .case-detail__row--problem .case-detail__intro-heading,
+  #case-detail-3 .case-detail__row--problem .case-detail__impact-content { grid-column: 1; grid-row: auto; }
   #case-detail-3 .case-detail__row--problem .case-detail__impact-grid { grid-template-columns: 1fr; }
   #case-detail-1 .case-detail__row--reflection,
   #case-detail-2 .case-detail__row--reflection,

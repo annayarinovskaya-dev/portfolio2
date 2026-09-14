@@ -29,6 +29,10 @@
   // Energy, Decarbonization), matching CASE_LIGHTBOX_IMAGES below.
   const FRAME_RANGE_OVERRIDES = {
     1: { count: 5, startRatio: 2 / 6 },
+    // Case 2's lightbox steps through 5 product screenshots (see
+    // CASE_LIGHTBOX_IMAGES below) rather than the default 7-way split, so
+    // the hero scrubber's stop count matches the image count 1:1.
+    2: { count: 5 },
     // Case 3's default 7 evenly-spaced stops land twice on the same
     // near-blank address screen (2nd stop) and once past the flow's last
     // meaningful step (7th stop) — drop those two rather than resampling,
@@ -115,6 +119,13 @@
       { src: 'assets/4 - Configurator - ROI - Graph.png', alt: 'ROI graph tab of the Configurator, plotting return on investment for the selected scenario' },
       { src: 'assets/5 - Configurator - Energy.png', alt: 'Energy tab of the Configurator, showing energy performance data for the scenario' },
       { src: 'assets/66 - Configurator - Decarbonization.png', alt: 'Decarbonization tab of the Configurator, showing the property\'s decarbonization path' }
+    ],
+    2: [
+      { src: 'assets/1- Portfolio Overview.png', alt: 'Portfolio overview screen, showing KPIs and health signals across all properties' },
+      { src: 'assets/2.1 - Portfolio Insights.png', alt: 'Portfolio insights screen, surfacing performance signals across the portfolio' },
+      { src: 'assets/2.2Strategy.png', alt: 'Strategy screen, comparing renovation scenarios across the portfolio' },
+      { src: 'assets/3.1 - Portfolio Insights.png', alt: 'Portfolio insights screen, drilled into property-level detail' },
+      { src: 'assets/3.2 - Portfolio Insights.png', alt: 'Portfolio insights screen, continued property-level detail' }
     ],
     3: [
       { src: 'assets/Property address_filled.png', alt: 'Property address step of the onboarding flow, filled in' },

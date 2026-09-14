@@ -39,14 +39,14 @@ const CASES = {
     photo: 'assets/portfolio-laptop-mockup.png',
     tags: ['B2B SaaS', 'Climate Tech'],
     title: 'Portfolio Overview',
-    desc: 'Shifting from individual property views to portfolio-level intelligence for asset managers.'
+    desc: 'Shifting from individual property views to portfolio-level intelligence, giving asset managers a clearer view of performance and where to act first.'
   },
   3: {
     photo: 'assets/photo_5829314581652770763_y.jpg',
     screenVideo: SCREEN_VIDEO_ONBOARDING,
     tags: ['B2B SaaS', 'Climate Tech'],
     title: 'Onboarding',
-    desc: 'Guiding users from signup to first value through a simplified property creation flow.'
+    desc: 'Guiding users from signup to first value through a simplified, flexible property creation flow that supports a self-serve experience.'
   }
 };
 
@@ -184,11 +184,9 @@ let activeScreenVideo = null;
 function layoutScreenVideo(screenVideo) {
   activeScreenVideo = screenVideo || null;
   const videoEl = document.getElementById('hero-screen-video');
-  const gradeEl = document.getElementById('hero-screen-video-grade');
 
   if (!activeScreenVideo) {
     videoEl.classList.remove('is-visible');
-    gradeEl.classList.remove('is-visible');
     videoEl.pause();
     videoEl.removeAttribute('src');
     return;
@@ -201,7 +199,6 @@ function layoutScreenVideo(screenVideo) {
   videoEl.play().catch(() => {});
   positionScreenVideo();
   videoEl.classList.add('is-visible');
-  gradeEl.classList.add('is-visible');
   // hero-video-overlay.js's hover/expand/pause controls target whichever
   // <video> is "active"; for cases with a screen-video overlay (case 3)
   // that's this element rather than the full-bleed hero-video-a/b pair.
@@ -213,26 +210,21 @@ function layoutScreenVideo(screenVideo) {
 // spanning the entire frame) so it lines up pixel-for-pixel with the real
 // photo underneath — same aspect ratio, same cover-fit math, just 2x the
 // pixel coordinates. clip-path then keeps only the screen's quad visible;
-// everywhere else, the untouched photo shows through. The grade overlay
-// gets the identical rect + clip-path so it can't drift out of
-// registration with the video it's tinting.
+// everywhere else, the untouched photo shows through.
 function positionScreenVideo() {
   if (!activeScreenVideo) return;
   const videoEl = document.getElementById('hero-screen-video');
-  const gradeEl = document.getElementById('hero-screen-video-grade');
   const hero = document.querySelector('.hero');
   const { imageWidth, imageHeight, quad } = activeScreenVideo;
   const frameConfig = { imageWidth, imageHeight, screen: { left: 0, top: 0, right: imageWidth, bottom: imageHeight }, quad };
   const rect = LaptopMockup.computeScreenRect(hero, frameConfig, LAPTOP_ZOOM);
   const clipPath = LaptopMockup.quadClipPath(frameConfig);
 
-  [videoEl, gradeEl].forEach((el) => {
-    el.style.left = `${rect.left}px`;
-    el.style.top = `${rect.top}px`;
-    el.style.width = `${rect.width}px`;
-    el.style.height = `${rect.height}px`;
-    el.style.clipPath = clipPath;
-  });
+  videoEl.style.left = `${rect.left}px`;
+  videoEl.style.top = `${rect.top}px`;
+  videoEl.style.width = `${rect.width}px`;
+  videoEl.style.height = `${rect.height}px`;
+  videoEl.style.clipPath = clipPath;
 }
 
 function initScreenResize() {
