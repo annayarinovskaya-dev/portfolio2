@@ -10,6 +10,11 @@
   --color-image-stroke: rgba(16, 9, 4, 0.2);
   --color-grey: #737373; /* darkened from #8c8c8c: 3.36:1 on white failed WCAG AA; #737373 gives 4.74:1 */
 
+  /* Line weights — dividers, image frames, underlines, icon strokes, rails
+     use --line-hairline; quote/modal accent borders use --line-accent. */
+  --line-hairline: 1px;
+  --line-accent: 2px;
+
   /* White text opacity hierarchy — for text sitting on dark/photo
      backgrounds only (not backgrounds/borders, which keep --color-off-white). */
   --text-primary: rgba(255, 255, 255, 1);    /* headlines, names, project titles */
@@ -316,7 +321,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   display: none;
   align-items: stretch;
   background: rgba(16, 9, 4, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: var(--line-hairline) solid rgba(255, 255, 255, 0.5);
 }
 
 .hero.is-video-paused .hero-video__scrubber {
@@ -330,7 +335,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   display: flex;
   flex-direction: row;
   background: rgba(16, 9, 4, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: var(--line-hairline) solid rgba(255, 255, 255, 0.5);
 }
 
 .hero-video__btn,
@@ -347,11 +352,11 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 
 .hero-video__scrubber > *:not(:first-child) {
-  border-left: 1px solid rgba(255, 255, 255, 0.35);
+  border-left: var(--line-hairline) solid rgba(255, 255, 255, 0.35);
 }
 
 .hero-video__actions > *:not(:first-child) {
-  border-left: 1px solid rgba(255, 255, 255, 0.35);
+  border-left: var(--line-hairline) solid rgba(255, 255, 255, 0.35);
 }
 
 /* Driftwood hover bg is light — bump back to full-strength text so the icon
@@ -425,7 +430,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   position: absolute;
   width: 6px;
   height: 6px;
-  border: 1px solid currentColor;
+  border: var(--line-hairline) solid currentColor;
 }
 
 .hero-video__icon--expand::before {
@@ -445,8 +450,8 @@ ul { list-style: none; margin: 0; padding: 0; }
 .hero-video__icon--chevron {
   width: 8px;
   height: 8px;
-  border-top: 1px solid currentColor;
-  border-right: 1px solid currentColor;
+  border-top: var(--line-hairline) solid currentColor;
+  border-right: var(--line-hairline) solid currentColor;
 }
 
 .hero-video__arrow--prev .hero-video__icon--chevron { transform: rotate(-135deg); }
@@ -465,7 +470,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   top: 50%;
   left: 0;
   width: 100%;
-  height: 1px;
+  height: var(--line-hairline);
   background: currentColor;
 }
 
@@ -526,7 +531,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   max-height: 90vh;
   padding: var(--spacing-24);
   background: var(--color-walnut-shadow);
-  border: 2px solid var(--color-case-accent);
+  border: var(--line-accent) solid var(--color-case-accent);
   opacity: 0;
   transform: scale(0.98);
   transition: opacity 0.2s ease, transform 0.2s ease;
@@ -765,21 +770,24 @@ body.nav-hidden .side-nav {
 }
 
 .side-tab__text {
-  border-bottom: 1px solid currentColor;
   padding-bottom: 2px;
 }
 
-body.about-open .side-tab__text {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
+/* The underline and the "Close" cross are the same two strokes
+   (.side-tab__arrow::before/::after), not two different elements
+   cross-fading. Closed, both strokes lie flat and overlap exactly - one
+   line, the same width as the text above it. Opening rotates them to
+   ±45deg and slides/shrinks the box out to the right, so the line is
+   visibly the thing that folds into the cross rather than vanishing
+   while an unrelated X fades in beside it. */
 .side-tab__arrow {
   position: absolute;
   left: 0;
-  top: 100%;
-  margin-top: 1px;
-  width: 56px;
+  /* +1.5px beyond the text's own padding-bottom so the closed-state
+     underline sits the same distance from "ABOUT" as LINKEDIN's
+     underline sits from its own label (see .about-meta a). */
+  top: calc(100% + 1.5px);
+  width: 100%;
   height: 18px;
   transition: width 0.3s ease, left 0.3s ease, top 0.3s ease,
               margin-top 0.3s ease, transform 0.3s ease;
@@ -787,7 +795,15 @@ body.about-open .side-tab__text {
 
 body.about-open .side-tab__arrow {
   top: 50%;
-  left: calc(100% + 7px);
+  /* This box positions from the padded .about-label's 100% edge, which
+     sits ~8px past the visible "E" (the label's own right padding) - and
+     the X's two 14px diagonals are then centered in this 14px-wide box,
+     landing their visible strokes ~2px further in still. Both of those
+     are invisible offsets the arrow icon doesn't have (no padding on its
+     link, stroke flush to its own box edge), so this needs to be pulled
+     well left of 100% to make the visible text-to-glyph gap match
+     LINKEDIN's ~7px gap to its arrow. */
+  left: calc(100% - 3.3px);
   margin-top: 0;
   transform: translateY(-50%);
   width: 14px;
@@ -798,23 +814,44 @@ body.about-open .side-tab__arrow {
   content: '';
   position: absolute;
   left: 0;
-  top: 50%;
+  top: 0;
   width: 100%;
-  height: 1px;
+  height: var(--line-hairline);
   background: currentColor;
-  transform: translateY(-50%);
-  transition: transform 0.3s ease, opacity 0.3s ease;
-  opacity: 0;
+  transform: translateY(-50%) rotate(0deg);
+  transition: top 0.3s ease, transform 0.3s ease, opacity 0.2s ease,
+              color 280ms ease;
 }
 
 body.about-open .side-tab__arrow::before {
-  opacity: 1;
+  top: 50%;
   transform: translateY(-50%) rotate(45deg);
 }
 
 body.about-open .side-tab__arrow::after {
-  opacity: 1;
+  top: 50%;
   transform: translateY(-50%) rotate(-45deg);
+}
+
+/* On hover the underline picks up the same maroon as the word above it
+   (see .about-label's text-clip fill just below) instead of disappearing -
+   one continuous top-down wipe through the word and into its own
+   underline. Triggered off the whole link (#about-tab), not just the
+   label span, so hovering anywhere on "About" - including the underline
+   itself - fires it, matching how Email/LinkedIn's whole link hovers
+   together. */
+body:not(.about-open) #about-tab:hover .side-tab__arrow::before,
+body:not(.about-open) #about-tab:hover .side-tab__arrow::after {
+  color: rgba(139, 40, 40, 0.85);
+}
+
+/* Once open, these same strokes are the "Close" cross - it fills to
+   driftwood alongside the word (below) on hover, for the same reason
+   Email/LinkedIn's arrow icon does: an icon that stays the old color
+   while the word beside it changes reads as broken, not intentional. */
+body.about-open #about-tab:hover .side-tab__arrow::before,
+body.about-open #about-tab:hover .side-tab__arrow::after {
+  color: var(--color-driftwood);
 }
 
 body.about-open .side-tab {
@@ -858,11 +895,59 @@ body.about-open .side-tab {
 
 .about-label {
   padding: 4px 8px;
-  transition: border-color 280ms ease;
 }
 
-.about-label:hover {
-  border-bottom-color: transparent;
+/* Neither state uses the shared .hover-fill box wipe (that's still used by
+   the 01/02/03 case tabs) - kill it here unconditionally so it can't paint
+   a rectangle behind/around either "About" or "Close". */
+.about-label::before {
+  content: none;
+}
+
+/* ABOUT (closed) state: fill the word itself with color, not a box around
+   it. A two-tone vertical gradient is clipped to the text's own glyphs
+   (background-clip: text) and slid into view on hover, so only the letter
+   shapes pick up color - same top-down wipe motif as the 01/02/03 tabs,
+   just shaped like the word instead of a padded rectangle. */
+body:not(.about-open) .about-label {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(139, 40, 40, 0.85) 50%,
+    var(--text-primary) 50%
+  );
+  background-size: 100% 200%;
+  background-position: 0 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  transition: background-position 280ms ease;
+}
+
+body:not(.about-open) #about-tab:hover .about-label {
+  background-position: 0 0;
+}
+
+/* CLOSE: same word-shaped, top-down fill as "About" and Email/LinkedIn -
+   filling to driftwood (this panel's own accent) rather than About's
+   maroon, since maroon-on-maroon would vanish against this background. */
+body.about-open .about-label {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(
+    to bottom,
+    var(--color-driftwood) 50%,
+    var(--text-primary) 50%
+  );
+  background-size: 100% 200%;
+  background-position: 0 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  transition: background-position 280ms ease;
+}
+
+body.about-open #about-tab:hover .about-label {
+  background-position: 0 0;
 }
 
 /* ---------- CASE NAV (vertical 01 02 03) ---------- */
@@ -880,7 +965,7 @@ body.about-open .side-tab {
   left: -8px;
   top: 0;
   bottom: 0;
-  width: 1px;
+  width: var(--line-hairline);
   background: rgba(255, 255, 255, 0.3);
 }
 
@@ -917,7 +1002,7 @@ body.about-open .side-tab {
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: 1px solid var(--color-off-white);
+  border: var(--line-hairline) solid var(--color-off-white);
   color: var(--text-tertiary);
   font-family: var(--font-display);
   font-size: 24px;
@@ -961,8 +1046,8 @@ body.about-open .side-tab {
 }
 
 .case-card__desc {
-  margin: 1.5vh 0 0;
-  font-size: clamp(14px, 1.05vw, 21px);
+  margin: 0.7vh 0 0;
+  font-size: 16px;
   font-weight: var(--font-weight-regular);
   line-height: 1.4;
   color: var(--text-secondary);
@@ -1121,19 +1206,49 @@ body.about-open .about-meta {
 .about-meta a {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 6.5px;
   font-size: 14px;
   font-weight: var(--font-weight-medium);
   text-transform: uppercase;
   letter-spacing: normal;
   color: var(--text-tertiary);
-  border-bottom: 1px solid var(--text-tertiary);
+  /* currentColor, not a fixed var, so the underline rides along with
+     whatever color .about-meta a itself (and the arrow, via inheritance)
+     transitions to on hover - same as CLOSE's underline. */
+  border-bottom: var(--line-hairline) solid currentColor;
   padding-bottom: 2px;
   transition: color 0.2s ease;
 }
 
 .about-meta a:hover {
+  /* Drives the arrow icon (background: currentColor) and the underline
+     above. The label text itself doesn't use color at all anymore - see
+     .about-meta__label below for its own top-down fill. */
   color: var(--color-driftwood);
+}
+
+/* EMAIL / LINKEDIN: same word-shaped, top-down fill as "About" and
+   "Close" (background-clip: text, two-tone gradient slid into view) -
+   just filling to the panel's own accent (driftwood) rather than About's
+   maroon, since maroon-on-maroon would vanish against this panel's
+   background. */
+.about-meta__label {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(
+    to bottom,
+    var(--color-driftwood) 50%,
+    var(--text-tertiary) 50%
+  );
+  background-size: 100% 200%;
+  background-position: 0 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  transition: background-position 280ms ease;
+}
+
+.about-meta a:hover .about-meta__label {
+  background-position: 0 0;
 }
 
 /* Hand-drawn to a 1px stroke so its weight matches the 1px underline above
@@ -1150,8 +1265,13 @@ body.about-open .about-meta {
   position: absolute;
   left: 0;
   bottom: 0;
-  width: 9px;
-  height: 1px;
+  /* Diagonal of the 9px box (9 * sqrt(2)), not 9px - the shaft is rotated
+     -45deg from the bottom-left corner, so it must span the box's full
+     corner-to-corner distance to reach the arrowhead's tip at top-right.
+     A 9px length (the box's side, not its diagonal) fell short and left a
+     visible gap between the shaft and the arrowhead. */
+  width: calc(9px * 1.41421356);
+  height: var(--line-hairline);
   background: currentColor;
   transform-origin: left bottom;
   transform: rotate(-45deg);
@@ -1164,8 +1284,8 @@ body.about-open .about-meta {
   right: 0;
   width: 6px;
   height: 6px;
-  border-top: 1px solid currentColor;
-  border-right: 1px solid currentColor;
+  border-top: var(--line-hairline) solid currentColor;
+  border-right: var(--line-hairline) solid currentColor;
 }
 
 /* ---------- CASE DETAIL (full write-up, normal flow after #story) ---------- */
@@ -1376,7 +1496,7 @@ body.about-open .about-meta {
 .case-detail__goal-item {
   margin: 0;
   padding-top: var(--spacing-12);
-  border-top: 1px solid var(--color-image-stroke);
+  border-top: var(--line-hairline) solid var(--color-image-stroke);
   font-size: clamp(15px, 1.1vw, 20px);
   line-height: 1.4;
   color: var(--color-cork-border);
@@ -1445,7 +1565,7 @@ body.about-open .about-meta {
   gap: var(--spacing-8);
   padding-top: var(--spacing-12);
   padding-left: 0;
-  border-top: 1px solid var(--color-image-stroke);
+  border-top: var(--line-hairline) solid var(--color-image-stroke);
 }
 
 .case-detail__row--hypothesis .case-detail__goal-item:first-child {
@@ -1520,7 +1640,7 @@ body.about-open .about-meta {
 .case-detail__row--evolution .case-detail__decision-text {
   grid-column: 1;
   grid-row: 1;
-  border-top: 1px solid var(--color-image-stroke);
+  border-top: var(--line-hairline) solid var(--color-image-stroke);
   padding-top: var(--spacing-24);
 }
 
@@ -1592,16 +1712,8 @@ body.about-open .about-meta {
   margin-top: 0;
 }
 
-/* Caption reads quiet/muted below the screenshot, not the shared grey
-   used for other figure captions on the page. */
-.case-detail__row--evolution .case-detail__decision-caption {
-  color: var(--color-walnut-shadow);
-  opacity: 0.45;
-}
-
 .case-detail__row--evolution .case-detail__decision-caption--accent {
   color: var(--color-case-accent);
-  opacity: 1;
 }
 
 .case-detail__decision-heading {
@@ -1636,7 +1748,7 @@ body.about-open .about-meta {
   height: auto;
   object-fit: cover;
   margin-top: var(--spacing-12);
-  border: 1px solid var(--color-image-stroke);
+  border: var(--line-hairline) solid var(--color-image-stroke);
 }
 
 .case-detail__decision-figure {
@@ -1652,7 +1764,7 @@ body.about-open .about-meta {
   justify-content: center;
   min-height: 220px;
   padding: var(--spacing-24);
-  border: 1px dashed var(--color-cork-border);
+  border: var(--line-hairline) dashed var(--color-cork-border);
   font-size: 13px;
   font-weight: var(--font-weight-medium);
   letter-spacing: normal;
@@ -1681,7 +1793,7 @@ body.about-open .about-meta {
   flex-direction: column;
   gap: var(--spacing-8);
   padding-top: var(--spacing-12);
-  border-top: 1px solid var(--color-cork-border);
+  border-top: var(--line-hairline) solid var(--color-cork-border);
 }
 
 .case-detail__metric-number {
@@ -1744,7 +1856,7 @@ body.about-open .about-meta {
   width: 100%;
   max-width: 420px;
   height: auto;
-  border: 1px solid var(--color-image-stroke);
+  border: var(--line-hairline) solid var(--color-image-stroke);
 }
 
 .case-detail__problem-visual .case-detail__bullets {
@@ -1764,7 +1876,7 @@ body.about-open .about-meta {
   display: block;
   width: 100%;
   height: auto;
-  border: 1px solid var(--color-image-stroke);
+  border: var(--line-hairline) solid var(--color-image-stroke);
 }
 
 .case-detail__row-visual--sm {
@@ -1804,7 +1916,7 @@ body.about-open .about-meta {
   display: block;
   width: 100%;
   height: auto;
-  border: 1px solid var(--color-image-stroke);
+  border: var(--line-hairline) solid var(--color-image-stroke);
 }
 
 /* ---------- KEY FINDING (Portfolio): same pattern — label + heading +
@@ -1834,7 +1946,7 @@ body.about-open .about-meta {
   display: block;
   width: 100%;
   height: auto;
-  border: 1px solid var(--color-image-stroke);
+  border: var(--line-hairline) solid var(--color-image-stroke);
 }
 
 /* ---------- RESEARCH & INSIGHTS ---------- */
@@ -1961,7 +2073,7 @@ body.about-open .about-meta {
 }
 
 .case-detail__compare-media {
-  border: 1px solid var(--color-image-stroke);
+  border: var(--line-hairline) solid var(--color-image-stroke);
   background: var(--color-off-white);
   display: flex;
   align-items: center;
@@ -2004,7 +2116,7 @@ body.about-open .about-meta {
 .case-detail__sequence-labels {
   margin: var(--spacing-12) 0 0;
   padding: var(--spacing-12) 0 0;
-  border-top: 1px solid var(--color-cork-border);
+  border-top: var(--line-hairline) solid var(--color-cork-border);
   font-size: 13px;
   font-weight: var(--font-weight-medium);
   letter-spacing: 0.02em;
@@ -2020,13 +2132,13 @@ body.about-open .about-meta {
   gap: var(--spacing-62) var(--spacing-62);
 }
 
-/* Label alone in row 1; headline (col 1) and the four problem points
-   (col 2) share row 2 so their tops align. The 2-column split (instead of
-   the shared 1/3 + 2/3 grid) also puts the points' left edge at the same
-   50% mark as the Goal/Approach columns below. */
+/* Label stays alone in the left column; headline and body paragraph
+   stack together in the right column (the 2-column split keeps its width
+   matched to the Goal/Approach columns below). */
 #case-detail-3 .case-detail__row--problem {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
+  row-gap: var(--spacing-24);
+  align-items: baseline;
 }
 
 #case-detail-3 .case-detail__row--problem .case-detail__label {
@@ -2035,17 +2147,13 @@ body.about-open .about-meta {
 }
 
 #case-detail-3 .case-detail__row--problem .case-detail__intro-heading {
-  grid-column: 1;
-  grid-row: 2;
+  grid-column: 2;
+  grid-row: 1;
 }
 
 #case-detail-3 .case-detail__row--problem .case-detail__impact-content {
   grid-column: 2;
   grid-row: 2;
-}
-
-#case-detail-3 .case-detail__row--problem .case-detail__impact-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 #case-detail-3 .case-detail__row--impact {
@@ -2096,7 +2204,7 @@ body.about-open .about-meta {
   flex-direction: column;
   gap: var(--spacing-8);
   padding-top: var(--spacing-24);
-  border-top: 1px solid var(--color-image-stroke);
+  border-top: var(--line-hairline) solid var(--color-image-stroke);
 }
 
 .case-detail__impact-item .case-detail__decision-heading {
@@ -2270,9 +2378,43 @@ body.about-open .about-meta {
    shared .case-detail__row--overview rule below on specificity alone
    (class only, 0-1-0) regardless of source order — unlike Problem/
    Research, which opt back out via their own #case-detail-1-scoped rules.
-   Overview needs the same ID-scoped opt-out to stay a grid here. */
+   Overview needs the same ID-scoped opt-out here.
+
+   Case study 1 uses its own explicit 3-column grid below, not the shared
+   one further down, so two different alignments hold at once:
+   - text ends exactly where the Problem row's image starts, i.e. the
+     Problem grid's own column1-end (50% of this row's width, plus half
+     Problem's fixed column-gap — the same math as .case-detail__row--
+     hypothesis .case-detail__goal-grid's margin-top above, applied to a
+     width instead of a length);
+   - the ledger's label column lines up with "Static to interactive", the
+     third column of the Impact grid (#case-detail-1 .case-detail__impact-
+     grid — repeat(auto-fit, minmax(240px, 1fr)) resolving to 3 equal
+     tracks at this width, gap clamp(40px, 4vw, 60px)).
+   Column 2 here is an unlabeled spacer absorbing the gap between those
+   two independently-computed boundaries — its width is whatever's left
+   between text-end and ledger-start, which can differ from either
+   section's own gap. Both items are pinned to grid-row: 1 (no spanning),
+   so — unlike the shared 3-row grid below, where a much-taller ledger
+   spanning several auto rows would stretch them and blow out the
+   heading-to-body gap on the left — there's no row-growth risk here. */
 #case-detail-1 .case-detail__row--overview {
+  --impact-col-gap: clamp(40px, 4vw, 60px);
   display: grid;
+  grid-template-columns:
+    calc(50% + (var(--spacing-62) / 2))
+    calc((100% / 6) + (var(--impact-col-gap) * 2 / 3) - (var(--spacing-62) / 2))
+    calc((100% / 3) - (var(--impact-col-gap) * 2 / 3));
+  column-gap: 0;
+}
+
+#case-detail-1 .case-detail__overview-col-text {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+  min-width: 0;
 }
 
 .case-detail__row--overview {
@@ -2320,8 +2462,8 @@ body.about-open .about-meta {
 
 .case-detail__overview-secondary--dim {
   margin: 0;
-  font-size: var(--body-secondary-size);
-  line-height: var(--leading-body-secondary);
+  font-size: var(--body-lead-size);
+  line-height: var(--leading-body-lead);
   color: var(--color-grey);
 }
 
@@ -2369,6 +2511,58 @@ body.about-open .about-meta {
   color: var(--color-walnut-shadow);
 }
 
+/* ---- Overview ledger rail (case study 1 only): a single-column right-hand
+   spec list replacing the three-column Timeline/Scope/Team meta grid used
+   by case studies 2 and 3 above. Each row is its own label/value grid with
+   a hairline rule between rows only — :first-child opts out so there's no
+   divider above Timeline, and with no trailing closer row there's none
+   below Team either. margin-top skips past the "01 / Overview" label + its
+   gap so the rail's top rule lands level with the intro-heading next to
+   it, using the same measured label-height + gap formula as
+   .case-detail__row--hypothesis .case-detail__goal-grid above. */
+#case-detail-1 .case-detail__overview-ledger {
+  grid-column: 3;
+  grid-row: 1;
+  min-width: 0;
+  align-self: start;
+  margin-top: calc(var(--spacing-24) + (12px * var(--leading-heading)));
+}
+
+#case-detail-1 .case-detail__ledger-row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 24px;
+  padding: 16px 0 18px;
+  border-top: 1px solid #e4e0db;
+}
+
+#case-detail-1 .case-detail__ledger-row:first-child {
+  border-top: none;
+}
+
+#case-detail-1 .case-detail__ledger-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-grey);
+}
+
+#case-detail-1 .case-detail__ledger-value {
+  font-size: 16px;
+  color: #16110f;
+}
+
+#case-detail-1 .case-detail__ledger-value--list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+#case-detail-1 .case-detail__ledger-highlight {
+  color: #16110f;
+}
+
 /* ---- Problem: text column (label, headline, body, limitations) beside a portrait image ---- */
 
 #case-detail-1 .case-detail__row--problem {
@@ -2410,7 +2604,7 @@ body.about-open .about-meta {
   align-items: baseline;
   gap: var(--spacing-12);
   padding: var(--spacing-12) 0 0;
-  border-top: 1px solid var(--color-image-stroke);
+  border-top: var(--line-hairline) solid var(--color-image-stroke);
   font-size: clamp(15px, 1.1vw, 20px);
   line-height: 1.4;
   color: var(--color-cork-border);
@@ -2444,7 +2638,7 @@ body.about-open .about-meta {
   display: block;
   width: 100%;
   height: auto;
-  border: 1px solid var(--color-image-stroke);
+  border: var(--line-hairline) solid var(--color-image-stroke);
 }
 
 #case-detail-1 .case-detail__problem-col-image .case-detail__decision-caption {
@@ -2491,7 +2685,7 @@ body.about-open .about-meta {
   display: block;
   width: 100%;
   height: auto;
-  border: 1px solid var(--color-image-stroke);
+  border: var(--line-hairline) solid var(--color-image-stroke);
 }
 
 #case-detail-2 .case-detail__problem-col-image .case-detail__decision-caption {
@@ -2510,7 +2704,8 @@ body.about-open .about-meta {
 }
 
 #case-detail-1 .case-detail__research-heading {
-  max-width: 30ch;
+  max-width: none;
+  white-space: nowrap;
 }
 
 #case-detail-1 .case-detail__research-columns {
@@ -2538,7 +2733,7 @@ body.about-open .about-meta {
 #case-detail-1 .case-detail__research-quote {
   margin: 0;
   padding-left: 16px;
-  border-left: 2px solid var(--color-case-accent);
+  border-left: var(--line-accent) solid var(--color-case-accent);
 }
 
 #case-detail-1 .case-detail__research-quote p {
@@ -2718,7 +2913,7 @@ body.about-open .about-meta {
      flex gap: 43px + the 1px border below -> 220+43+1 = 264px between
      Reflection and the footer's visible content. */
   padding: 43px var(--case-pad-r) var(--spacing-48) var(--case-pad-l);
-  border-top: 1px solid var(--color-image-stroke);
+  border-top: var(--line-hairline) solid var(--color-image-stroke);
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: end;
@@ -2753,6 +2948,18 @@ body.about-open .about-meta {
 .case-detail__footer .about-meta a:hover {
   color: var(--color-driftwood);
   border-bottom-color: var(--color-driftwood);
+}
+
+/* Same top-down text fill as the About panel's Email/LinkedIn, but
+   filling from this footer's dark ink (cork-border) instead of the
+   panel's near-white text-tertiary, since that's this context's own
+   "off" color. */
+.case-detail__footer .about-meta__label {
+  background-image: linear-gradient(
+    to bottom,
+    var(--color-driftwood) 50%,
+    var(--color-cork-border) 50%
+  );
 }
 
 .case-detail__footer-next {
@@ -2893,6 +3100,10 @@ body.about-open .about-meta {
   .case-detail__row--overview .case-detail__body-stack,
   .case-detail__overview-col-meta { grid-column: 1; grid-row: auto; }
   .case-detail__overview-col-meta { grid-template-columns: 1fr; row-gap: var(--spacing-24); }
+
+  #case-detail-1 .case-detail__row--overview { grid-template-columns: 1fr; row-gap: var(--spacing-24); }
+  #case-detail-1 .case-detail__overview-col-text { grid-column: 1; grid-row: 1; }
+  #case-detail-1 .case-detail__overview-ledger { grid-column: 1; grid-row: 2; margin-top: 0; }
 
   #case-detail-1 .case-detail__row--problem,
   #case-detail-2 .case-detail__row--problem { grid-template-columns: 1fr; }

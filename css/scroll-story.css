@@ -170,7 +170,7 @@
   left: 0;
   top: 0.65em;
   width: 8px;
-  height: 1px;
+  height: var(--line-hairline);
   background: var(--color-case-accent);
 }
 
@@ -208,7 +208,7 @@
 .story__quote {
   margin: var(--spacing-12) 0 0;
   padding-left: var(--spacing-18);
-  border-left: 2px solid var(--color-case-accent);
+  border-left: var(--line-accent) solid var(--color-case-accent);
   font-family: var(--font-serif);
   font-size: clamp(16px, 1.3vw, 22px);
   font-style: normal;
@@ -316,8 +316,8 @@ body.about-open .story__progress {
   margin-left: -3.5px;
   width: 7px;
   height: 7px;
-  border-top: 1px solid currentColor;
-  border-right: 1px solid currentColor;
+  border-top: var(--line-hairline) solid currentColor;
+  border-right: var(--line-hairline) solid currentColor;
   transform: rotate(-45deg);
 }
 
@@ -342,9 +342,27 @@ body.about-open .story__progress {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 1px;
+  width: var(--line-hairline);
   background: rgba(255, 255, 255, 0.25);
   transition: opacity 0.3s ease;
+}
+
+/* Traveled portion of the track, drawn in red. Grows via scaleY(frac) from
+   a fixed top origin rather than a background-gradient stop, and shares the
+   marker's own "transform 0.5s ease" below verbatim — a gradient stop
+   updates instantly with no way to transition it, which let the fill race
+   ahead of the marker it's meant to trail exactly. Same transition on the
+   same CSS property (transform) is what keeps the two in lockstep. */
+.story__progress-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--line-hairline);
+  height: 100%;
+  background: var(--color-brand-red);
+  transform-origin: top;
+  transform: scaleY(0);
+  transition: transform 0.5s ease;
 }
 
 /* The only moving part: translateY is set from JS as frac * track height
@@ -356,7 +374,7 @@ body.about-open .story__progress {
   left: -2px;
   width: 5px;
   height: 5px;
-  background: var(--color-off-white);
+  background: var(--color-brand-red);
   transform: translateY(-50%);
   transition: transform 0.5s ease, background 0.4s ease, opacity 0.3s ease;
 }
@@ -367,6 +385,7 @@ body.about-open .story__progress {
    the vertical "Back to top" label (governed separately by hero-covered)
    keeps reading at the very bottom of the page. */
 .story__progress.at-page-end .story__progress-line,
+.story__progress.at-page-end .story__progress-fill,
 .story__progress.at-page-end .story__progress-marker {
   opacity: 0;
 }
@@ -401,10 +420,6 @@ body.about-open .story__progress {
    and marker would vanish right as they reach the end — swap to dark ink. */
 .story__progress.is-on-light .story__progress-line {
   background: var(--color-image-stroke);
-}
-
-.story__progress.is-on-light .story__progress-marker {
-  background: var(--color-walnut-shadow);
 }
 
 /* Small contextual caption ("01 — Context") beside a heading — fades with
@@ -480,7 +495,7 @@ body.about-open .story__progress {
 
 .story__stat-list li {
   flex: 1 1 200px;
-  border-top: 1px solid var(--color-cork-border);
+  border-top: var(--line-hairline) solid var(--color-cork-border);
   padding-top: var(--spacing-12);
   font-size: 15px;
   line-height: 1.4;
@@ -520,7 +535,7 @@ body.about-open .story__progress {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 1px;
+  width: var(--line-hairline);
   background: rgba(16, 9, 4, 0.35);
 }
 

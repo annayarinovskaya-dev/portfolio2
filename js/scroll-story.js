@@ -209,11 +209,13 @@
         '<span class="story__progress-top-label">Back to top</span>' +
       '</button>' +
       '<span class="story__progress-line"></span>' +
+      '<span class="story__progress-fill"></span>' +
       '<span class="story__progress-marker"></span>' +
       '<span class="story__progress-hint">Scroll down to case study</span>';
     document.body.appendChild(progress);
 
     const progressMarker = progress.querySelector('.story__progress-marker');
+    const progressFill = progress.querySelector('.story__progress-fill');
     progress.querySelector('.story__progress-top').addEventListener('click', function () {
       window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     });
@@ -315,6 +317,7 @@
         const progressRect = progress.getBoundingClientRect();
         const trackHeightPx = progressRect.height;
         progressMarker.style.transform = 'translateY(-50%) translateY(' + (frac * trackHeightPx) + 'px)';
+        progressFill.style.transform = 'scaleY(' + frac + ')';
 
         progress.classList.toggle('is-visible', caseDetailRect.bottom > 0);
         // Once the footer band has substantially entered the viewport, the
