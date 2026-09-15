@@ -348,17 +348,17 @@
         // trigger).
         progress.classList.toggle('has-scrolled', scrollY > 0);
         // "Back to top" only earns its place once the landing hero is
-        // completely covered by the case study — same handoff point
-        // nav-hidden below uses (#case-detail's top reaching the viewport
-        // top), not the first scroll tick.
-        progress.classList.toggle('hero-covered', caseDetailRect.top <= 0);
+        // completely covered by white content — same whiteTop handoff point
+        // nav-hidden below uses, not the first scroll tick.
+        progress.classList.toggle('hero-covered', whiteTop <= 0);
 
-        // Side nav sits fixed above everything (z-index 11) so it would
-        // otherwise float over the case study once #case-detail rises to
-        // cover the hero — hide it right at that handoff point (its top
-        // reaching the viewport top) and bring it back once the user
-        // scrolls back up past it.
-        document.body.classList.toggle('nav-hidden', caseDetailRect.top <= 0);
+        // Side nav sits fixed above everything (z-index 11), styled for the
+        // dark hero — hide it once white content (#story's mobile stacked
+        // narrative, or #case-detail) rises to cover the hero, using the
+        // same whiteTop boundary as the trail's own is-on-light swap above.
+        // caseDetailRect.top alone would leave it stuck (unreadable, white
+        // on white) over #story on mobile, which rises first there.
+        document.body.classList.toggle('nav-hidden', whiteTop <= 0);
       });
     }
 

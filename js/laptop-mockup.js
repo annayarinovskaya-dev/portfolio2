@@ -5,8 +5,14 @@
 // A case study supplies one config: { imageWidth, imageHeight, screen: {left,
 // top, right, bottom} } — the pixel rect of the screen area measured against
 // the source photo. Two consumers of that same config:
-//   - computeScreenRect(): cover-fit math for when the photo fills a dynamic
-//     viewport-sized container (desktop pinned stage, object-fit: cover).
+//   - computeScreenRect(): cover/contain-fit math for when the photo fills a
+//     dynamic viewport-sized container. Takes an optional `focal` {fx, fy}
+//     point — a fraction of the image's own width/height, matching the CSS
+//     object-position formula — so the overlay lands on whatever off-center
+//     crop is showing (see the @media (max-width: 980px) block in
+//     css/styles.css) instead of assuming a centered crop. Also takes an
+//     optional `fit`: 'cover' (default) or 'contain', matching the CSS
+//     object-fit the photo/video is actually using.
 //   - screenRectPercent(): simple percentages for when the photo is shown at
 //     its own natural size (mobile/stacked layout, no cover-fit cropping).
 //
@@ -22,15 +28,23 @@
 (function () {
   'use strict';
 
-  function computeScreenRect(container, config, zoom) {
+  function computeScreenRect(container, config, zoom, focal, fit) {
     const { imageWidth, imageHeight, screen } = config;
     const vw = container.clientWidth;
     const vh = container.clientHeight;
-    const scale = Math.max(vw / imageWidth, vh / imageHeight);
+    const scale = fit === 'contain'
+      ? Math.min(vw / imageWidth, vh / imageHeight)
+      : Math.max(vw / imageWidth, vh / imageHeight);
     const renderedW = imageWidth * scale;
     const renderedH = imageHeight * scale;
-    const offsetX = (vw - renderedW) / 2;
-    const offsetY = (vh - renderedH) / 2;
+    // Same formula as the CSS object-position spec: at fx/fy 0.5 (the
+    // default) this is a centered crop, identical to the old (vw -
+    // renderedW) / 2. Off-center values shift which side of the oversized
+    // rendered image gets cropped off, matching --hero-focus-x/-y in CSS.
+    const fx = focal && typeof focal.fx === 'number' ? focal.fx : 0.5;
+    const fy = focal && typeof focal.fy === 'number' ? focal.fy : 0.5;
+    const offsetX = (vw - renderedW) * fx;
+    const offsetY = (vh - renderedH) * fy;
 
     const baseLeft = offsetX + screen.left * scale;
     const baseTop = offsetY + screen.top * scale;

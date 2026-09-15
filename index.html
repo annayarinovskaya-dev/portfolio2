@@ -28,13 +28,21 @@
 <div class="story-pin" id="story-pin">
 <main class="hero">
   <div class="hero__bg" aria-hidden="true"></div>
-  <video class="hero__video is-visible" id="hero-video-a" autoplay muted loop playsinline aria-hidden="true" poster="assets/Gemini_Generated_Image_qtfftwqtfftwqtff.jpeg">
-    <source src="assets/configurator-desktop-composite.mp4" type="video/mp4">
-  </video>
-  <video class="hero__video" id="hero-video-b" muted loop playsinline aria-hidden="true"></video>
-  <img class="hero__photo is-loading" id="hero-photo" src="assets/Gemini_Generated_Image_qtfftwqtfftwqtff.jpeg" alt="" aria-hidden="true">
-  <img class="hero__screen" id="hero-screen" alt="" aria-hidden="true">
-  <video class="hero__screen-video" id="hero-screen-video" muted loop autoplay playsinline aria-hidden="true"></video>
+  <div class="hero__media" id="hero-media">
+    <video class="hero__video is-visible" id="hero-video-a" autoplay muted loop playsinline aria-hidden="true" poster="assets/Gemini_Generated_Image_qtfftwqtfftwqtff.jpeg">
+      <source src="assets/configurator-desktop-composite.mp4" type="video/mp4">
+    </video>
+    <video class="hero__video" id="hero-video-b" muted loop playsinline aria-hidden="true"></video>
+    <img class="hero__photo is-loading" id="hero-photo" src="assets/Gemini_Generated_Image_qtfftwqtfftwqtff.jpeg" alt="" aria-hidden="true">
+    <img class="hero__screen" id="hero-screen" alt="" aria-hidden="true">
+    <video class="hero__screen-video" id="hero-screen-video" muted loop autoplay playsinline aria-hidden="true"></video>
+    <div class="hero__mobile-screen-window" id="hero-mobile-screen-window">
+      <video class="hero__mobile-screen-video" id="hero-mobile-screen-video" muted loop autoplay playsinline aria-hidden="true">
+        <source src="assets/configurator-desktop-composite.mp4" type="video/mp4">
+      </video>
+    </div>
+  </div>
+  <h2 class="hero__ghost-title" id="hero-ghost-title" aria-hidden="true">Configurator</h2>
 
   <section class="case-card" id="case-card">
     <div class="case-nav" role="tablist" aria-label="Case studies">
@@ -106,7 +114,7 @@
     <h1 id="about-title">Hi, I’m Anna - a Product Designer based in Berlin, focused on making complex digital products feel clear, useful, and intuitive.</h1>
   </div>
   <figure class="about-portrait">
-    <img src="assets/about-anna.webp" alt="Portrait of Anna Iarinovskaia">
+    <img src="assets/Profile photo.PNG" alt="Portrait of Anna Iarinovskaia">
   </figure>
   <p class="about-lead">With a background that goes beyond interface design, I work across the product lifecycle - from research and product strategy to interaction design, prototyping, and scalable design systems.</p>
   <div class="about-meta">
@@ -264,7 +272,7 @@
           </div>
           <div class="case-detail__impact-item">
             <div class="case-detail__impact-figure">
-              <div class="case-detail__impact-stat case-detail__impact-stat--icon" aria-hidden="true">↗</div>
+              <div class="case-detail__impact-stat case-detail__impact-stat--icon" aria-hidden="true">↗&#xFE0E;</div>
             </div>
             <h3 class="case-detail__decision-heading">Static to interactive</h3>
             <p class="case-detail__decision-body">The project changed how we thought about the product - from delivering static reports to building interactive tools that let users explore scenarios and plan independently.</p>

@@ -80,6 +80,13 @@
   --spacing-68: 68px;
   --spacing-96: 96px;
 
+  /* Distance from the viewport edge to the vertical rail labels
+     ("Case study" left, "Scroll down to case study" / "Back to top"
+     right) — shared by .case-nav__label (styles.css) and
+     .story__progress-hint/.story__progress-top (scroll-story.css) so
+     both stay equidistant from their edge at any width. */
+  --rail-label-gap: 22px;
+
   /* Radius */
   --radius-cards: 0px;
   --radius-inputs: 0px;
@@ -204,15 +211,26 @@ ul { list-style: none; margin: 0; padding: 0; }
   opacity: 1;
 }
 
+/* Mobile-only Configurator (case 1) screen overlay - see the @media
+   (max-width: 980px) block below for its visible/positioned rules. Hidden
+   here so desktop (where no rule below applies) never lays it out. */
+.hero__mobile-screen-window { display: none; }
+
+/* Mobile-only ghost title (see @media (max-width: 980px) below) — straddles
+   the hero photo's bottom edge and the white section beneath it. Not part
+   of the desktop layout. */
+.hero__ghost-title { display: none; }
+
 /* ---------- HERO VIDEO OVERLAY ---------- */
 /* Hover/tap overlay scoped to just the "screen" rect of whichever case's
    video mockup is active (the monitor/laptop glass, not the desk/bezel
    around it) — positioned in JS (hero-video-overlay.js) via the same
-   LaptopMockup.computeScreenRect() cover-fit math used for .hero__screen,
-   against per-case rects measured from each video's native 1920x1080
-   frame. Disabled below the 980px breakpoint, matching .hero__screen's
-   existing opt-out there (the cover-fit math assumes a centered crop,
-   which no longer holds once mobile shifts object-position). */
+   LaptopMockup.computeScreenRect() math used for .hero__screen, against
+   per-case rects measured from each video's native 1920x1080 frame.
+   Disabled below the 980px breakpoint since hover-scrub doesn't apply on
+   touch — unlike .hero__screen/.hero__screen-video, this isn't shown on
+   mobile at all, so its cover-fit positioning math is never exercised
+   there. */
 
 .hero-video__hitbox {
   position: absolute;
@@ -776,7 +794,6 @@ body.nav-hidden .side-nav {
 .side-tab--about {
   position: relative;
   display: inline-block;
-  transform: translateY(11px);
 }
 
 .side-tab__text {
@@ -792,12 +809,17 @@ body.nav-hidden .side-nav {
    while an unrelated X fades in beside it. */
 .side-tab__arrow {
   position: absolute;
-  left: 0;
+  /* +8px to skip .about-label's own left padding, else the underline
+     starts 8px before the visible "A". */
+  left: 8px;
   /* +1.5px beyond the text's own padding-bottom so the closed-state
      underline sits the same distance from "ABOUT" as LINKEDIN's
      underline sits from its own label (see .about-meta a). */
   top: calc(100% + 1.5px);
-  width: 100%;
+  /* -16px for .about-label's left+right padding, -0.02em to cancel
+     .side-tab's letter-spacing trailing the last letter, else underline
+     runs wider than "About" itself. */
+  width: calc(100% - 16px - 0.02em);
   height: 18px;
   transition: width 0.3s ease, left 0.3s ease, top 0.3s ease,
               margin-top 0.3s ease, transform 0.3s ease;
@@ -850,18 +872,24 @@ body.about-open .side-tab__arrow::after {
    label span, so hovering anywhere on "About" - including the underline
    itself - fires it, matching how Email/LinkedIn's whole link hovers
    together. */
-body:not(.about-open) #about-tab:hover .side-tab__arrow::before,
-body:not(.about-open) #about-tab:hover .side-tab__arrow::after {
-  color: rgba(139, 40, 40, 0.85);
-}
+/* (hover: hover) guard: touch devices have no pointer to "leave", so a tap
+   leaves #about-tab stuck matching :hover after the panel closes, which
+   would otherwise strand the label/arrow in their hover colors on the
+   landing page instead of resting state. */
+@media (hover: hover) {
+  body:not(.about-open) #about-tab:hover .side-tab__arrow::before,
+  body:not(.about-open) #about-tab:hover .side-tab__arrow::after {
+    color: rgba(139, 40, 40, 0.85);
+  }
 
-/* Once open, these same strokes are the "Close" cross - it fills to
-   driftwood alongside the word (below) on hover, for the same reason
-   Email/LinkedIn's arrow icon does: an icon that stays the old color
-   while the word beside it changes reads as broken, not intentional. */
-body.about-open #about-tab:hover .side-tab__arrow::before,
-body.about-open #about-tab:hover .side-tab__arrow::after {
-  color: var(--color-driftwood);
+  /* Once open, these same strokes are the "Close" cross - it fills to
+     driftwood alongside the word (below) on hover, for the same reason
+     Email/LinkedIn's arrow icon does: an icon that stays the old color
+     while the word beside it changes reads as broken, not intentional. */
+  body.about-open #about-tab:hover .side-tab__arrow::before,
+  body.about-open #about-tab:hover .side-tab__arrow::after {
+    color: var(--color-driftwood);
+  }
 }
 
 body.about-open .side-tab {
@@ -934,8 +962,10 @@ body:not(.about-open) .about-label {
   transition: background-position 280ms ease;
 }
 
-body:not(.about-open) #about-tab:hover .about-label {
-  background-position: 0 0;
+@media (hover: hover) {
+  body:not(.about-open) #about-tab:hover .about-label {
+    background-position: 0 0;
+  }
 }
 
 /* CLOSE: same word-shaped, top-down fill as "About" and Email/LinkedIn -
@@ -956,8 +986,10 @@ body.about-open .about-label {
   transition: background-position 280ms ease;
 }
 
-body.about-open #about-tab:hover .about-label {
-  background-position: 0 0;
+@media (hover: hover) {
+  body.about-open #about-tab:hover .about-label {
+    background-position: 0 0;
+  }
 }
 
 /* ---------- CASE NAV (vertical 01 02 03) ---------- */
@@ -969,23 +1001,17 @@ body.about-open #about-tab:hover .about-label {
   pointer-events: none;
 }
 
-.case-nav::before {
-  content: '';
-  position: absolute;
-  left: -8px;
-  top: 0;
-  bottom: 0;
-  width: var(--line-hairline);
-  background: rgba(255, 255, 255, 0.6);
-}
-
 .case-nav__label {
   pointer-events: auto;
   position: absolute;
-  left: -57px;
+  /* .case-nav itself sits at left: var(--spacing-48), so subtracting
+     that back out lands this label's own left edge at exactly
+     --rail-label-gap from the viewport edge — same distance the
+     right-hand rail label keeps via the mirrored calc() in
+     scroll-story.css. */
+  left: calc(var(--rail-label-gap) - var(--spacing-48));
   top: 0;
   bottom: 0;
-  width: 42px;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   white-space: nowrap;
@@ -995,14 +1021,13 @@ body.about-open #about-tab:hover .about-label {
   color: var(--text-tertiary);
   display: flex;
   align-items: flex-end;
-  justify-content: flex-start;
 }
 
 .case-nav__list {
   pointer-events: auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 
 .case-tab {
@@ -1043,6 +1068,22 @@ body.about-open #about-tab:hover .about-label {
   pointer-events: none;
 }
 
+/* Second line of defense behind the title/desc text, on top of the
+   image-coverage guarantee that already keeps photo/video under them at
+   every breakpoint (see the @media (max-width: 980px) block) - not a fix
+   for an observed gap, just cheap insurance against any future layout
+   change landing this text on plain page background. Anchored bottom-left
+   (where the text actually sits, not the container's own center - this
+   box spans the full width between left/right spacing-48) and faded out
+   fast enough that it reads as nothing at normal viewing distance. */
+.case-card__bottom::before {
+  content: '';
+  position: absolute;
+  inset: -10%;
+  background: radial-gradient(ellipse 65% 75% at 20% 80%, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0) 70%);
+  pointer-events: none;
+}
+
 .case-card__title {
   margin: 0;
   font-family: var(--font-serif);
@@ -1052,6 +1093,7 @@ body.about-open #about-tab:hover .about-label {
   letter-spacing: -0.02em;
   text-transform: uppercase;
   color: var(--text-primary);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
@@ -1180,27 +1222,36 @@ body.about-open .about-meta {
   color: #ffffff;
 }
 
-/* top-anchored to match .about-heading's own top offset (padding + its
-   190px margin), and stretched to bottom:0 so it runs to the bottom edge
-   of the panel. left:58vw lines its left edge up with .intro__name's left
-   edge (measured ~839px of 1440px viewport width); right matches the
-   panel's standard content margin, same as .about-meta/.about-heading. */
+/* Box edges, each pinned independently:
+   - left: was the visible left edge of the old 65%-wide, centered crop
+     (58vw container start + half of the leftover 35% of container width) —
+     kept exactly so the photo doesn't shift horizontally.
+   - top: .about-heading's own top offset (its 190px margin + the panel's
+     spacing-48 padding), so the box starts level with the bio text.
+   - right: the panel's standard content margin, which is also exactly
+     .intro__name's own right inset (right:0 + padding spacing-48) — so
+     this already right-aligns the box with the "Anna Iarinovskaia" heading.
+   - bottom: 0, unchanged, runs to the bottom edge of the panel. */
 .about-portrait {
   position: absolute;
   z-index: 1;
-  left: 58vw;
+  left: calc(65.35vw - 8.4px);
   right: var(--spacing-48);
   top: calc(var(--spacing-48) + 190px);
   bottom: 0;
   margin: 0;
 }
 
+/* Box is now taller and narrower than the photo's own aspect ratio, so
+   cover-crop it; anchoring the crop to the bottom-left keeps the same
+   portion of the image visible along those two edges as before. */
 .about-portrait img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 63%;
+  object-position: left 40%;
+  filter: brightness(0.88);
 }
 
 .about-meta {
@@ -1227,7 +1278,6 @@ body.about-open .about-meta {
      whatever color .about-meta a itself (and the arrow, via inheritance)
      transitions to on hover - same as CLOSE's underline. */
   border-bottom: var(--line-hairline) solid currentColor;
-  padding-bottom: 2px;
   transition: color 0.2s ease;
 }
 
@@ -1324,7 +1374,7 @@ body.about-open .about-meta {
 
 .case-detail__inner {
   max-width: 1300px;
-  margin: 0;
+  margin-inline: auto;
   display: flex;
   flex-direction: column;
   /* 220px inter-section rhythm, shared by all three case studies. */
@@ -2673,7 +2723,6 @@ body.about-open .about-meta {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: var(--spacing-62);
   align-items: start;
-  margin-top: var(--spacing-24);
 }
 
 #case-detail-1 .case-detail__research-col {
@@ -2902,9 +2951,9 @@ body.about-open .about-meta {
   margin-inline: calc(-1 * var(--case-pad-l)) calc(-1 * var(--case-pad-r));
   /* Top spacing is padding-only (no margin-top) so there's one spacing
      mechanism for this edge, not two stacked on top of the shared 220px
-     flex gap: 43px + the 1px border below -> 220+43+1 = 264px between
-     Reflection and the footer's visible content. */
-  padding: 43px var(--case-pad-r) var(--spacing-48) var(--case-pad-l);
+     flex gap. Top and bottom padding match (--spacing-48) so the footer's
+     content band has equal whitespace above and below it. */
+  padding: var(--spacing-48) var(--case-pad-r) var(--spacing-48) var(--case-pad-l);
   border-top: var(--line-hairline) solid var(--color-image-stroke);
   display: grid;
   grid-template-columns: auto 1fr;
@@ -2919,6 +2968,7 @@ body.about-open .about-meta {
    document flow rather than over the About panel. */
 .case-detail__footer .about-meta {
   position: static;
+  align-self: center;
   gap: 72px;
   /* Cancel the About overlay's own reveal-animation initial state (shared
      .about-meta rule further down hides it at opacity:0 until
@@ -2982,40 +3032,322 @@ body.about-open .about-meta {
 
 @media (max-width: 980px) {
   .intro { padding: var(--spacing-24) var(--spacing-24) var(--spacing-18); max-width: 80vw; }
-  .side-nav { right: var(--spacing-18); }
-  .hero__photo, .hero__video { object-position: 60% center; }
-  .hero { padding-bottom: var(--spacing-18); display: flex; flex-direction: column; justify-content: flex-end; }
-  .hero__screen, .hero__screen-video { display: none; }
+  /* Mobile: nav scrolls away with page instead of staying fixed, so ABOUT
+     doesn't hover over content below the hero. */
+  .intro { position: absolute; }
+  /* Offset by -8px (.about-label's own left padding) so the "ABOUT" glyph
+     itself lands flush at spacing-24, matching the Case study label, the
+     case title, and the description below it - not the box edge. */
+  .side-nav { position: absolute; left: calc(var(--spacing-24) - 8px); }
+  .side-tab { font-size: var(--text-sm); }
 
-  /* The screen-rect math assumes a centered object-fit:cover crop; mobile
-     shifts object-position, so it'd misalign here — same reason
-     .hero__screen opts out at this breakpoint. */
+  /* Scoped to :not(.about-open) — the About panel has its own red backing
+     bar behind .intro/.side-nav (body.about-open .intro::before) and needs
+     the header to stay light/white against that. This dark-ink swap is
+     only for the white hero's closed state. */
+  body:not(.about-open) .intro,
+  body:not(.about-open) .side-tab { color: var(--color-walnut-shadow); }
+  /* .intro__name/.intro__role each carry their own explicit `color` (not
+     inherited), so the swap on .intro above doesn't reach them — set both
+     directly. */
+  body:not(.about-open) .intro__name { color: var(--color-walnut-shadow); }
+  body:not(.about-open) .intro__role { color: var(--color-grey); }
+
+  /* .about-label's resting state is painted via background-clip: text
+     against --text-tertiary (translucent white, tuned for the dark hero
+     photo) rather than plain `color`, so the swap above doesn't reach it —
+     without this override "ABOUT" is white-on-white and invisible here. */
+  body:not(.about-open) .about-label {
+    background-image: linear-gradient(
+      to bottom,
+      rgba(139, 40, 40, 0.85) 50%,
+      var(--color-walnut-shadow) 50%
+    );
+  }
+
+  /* Configurator (case 1) / Portfolio Overview (case 2) / Onboarding
+     (case 3) mobile: the dark-ink header swap above assumes the hero sits
+     on the shared mobile layout's off-white page background - these three
+     cases' hero is now a full-bleed photo instead (see the .hero:has(...)
+     overrides further below), so the header needs to stay light/white
+     here, same as desktop.
+     :has() on body (an ancestor of both .hero and .intro/.side-nav) reaches
+     this from outside .hero, and out-specifies the plain
+     body:not(.about-open) rules above regardless of source order. */
+  body:not(.about-open):has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .intro,
+  body:not(.about-open):has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .side-tab {
+    color: var(--text-primary);
+  }
+  body:not(.about-open):has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .intro__name {
+    color: var(--text-primary);
+  }
+  body:not(.about-open):has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .intro__role {
+    color: var(--text-tertiary);
+  }
+  body:not(.about-open):has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .about-label {
+    background-image: linear-gradient(
+      to bottom,
+      rgba(139, 40, 40, 0.85) 50%,
+      var(--text-tertiary) 50%
+    );
+  }
+
+  /* display:grid (not the flex column a first pass might reach for) so the
+     photo/video crossfade layers below can overlap in one 58vh cell —
+     .hero__photo, both crossfade <video>s, and .hero__screen(-video) all
+     share grid-row/column 1. A flex column would instead stack each of
+     those as its own full-height sibling box (three 58vh bands, one mostly
+     empty/transparent) since only one carries opacity:1 at a time; nothing
+     here otherwise takes it out of flow. Ghost title and case-card auto-
+     place into the implicit rows that follow, below the image. */
+  .hero {
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: 48vh;
+    min-height: 0;
+    /* Matches .intro/.side-nav's own 100px height plus a small buffer —
+       trimmed from an earlier 140px so image+title+desc fit in one
+       viewport instead of pushing the description past the fold. */
+    padding-top: 104px;
+    padding-bottom: var(--spacing-12);
+    background: var(--color-off-white);
+  }
+
+  .hero__bg { display: none; }
+
+  /* Height-driven box, not a fixed aspect ratio — claims as much vertical
+     space as the layout can spare and crops in from the sides to fill it.
+     overflow:hidden here (not just on .hero, which is full-bleed width) is
+     load-bearing: .hero__screen-video is deliberately oversized (cover-fit
+     against the WHOLE frame, then clip-path'd to just the screen quad) and
+     without a boundary exactly matching this padded box, that oversized
+     video bleeds into the side gutters as a visible black rectangle
+     wherever the quad's math lands outside it. */
+  .hero__media {
+    grid-row: 1;
+    grid-column: 1;
+    position: relative;
+    overflow: hidden;
+    width: calc(100% - var(--spacing-24) * 2);
+    height: 100%;
+    margin: 0 auto;
+  }
+
+  .hero__photo, .hero__video {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  /* Configurator (case 1) / Portfolio Overview (case 2) / Onboarding
+     (case 3) mobile: desktop keeps its full-bleed composite video/photo
+     pairing unchanged (baked-in or quad-warped backdrop, no separate
+     background layer to swap on desktop). Mobile instead hides that
+     existing layer (.hero__photo/.hero__video/.hero__screen-video below)
+     and shows a dedicated portrait mockup photo with more room around the
+     device - the same untouched video keeps playing, but only its screen
+     content is cropped out and overlaid onto this photo's own blank screen
+     (see #hero-mobile-screen-video positioning in main.js), rather than its
+     full scene/quad (which would double up against the photo's own
+     device). :has() keys all of this to cases 1/2/3, matching .case-tab's
+     is-active state with no extra JS state needed. */
+  .hero:has(.case-tab[data-case="1"].is-active) .hero__media {
+    /* Fallback fit until JS overrides background-size/-position with the
+       zoomed-to-screen-width fit (see positionMobileScreenOverlay() in
+       main.js) — keeps this from flashing unstyled if JS is slow/disabled. */
+    background: url('../assets/configurator_mobile.jpeg') center / cover no-repeat;
+  }
+
+  .hero:has(.case-tab[data-case="2"].is-active) .hero__media {
+    background: url('../assets/portofolio_mobile.jpeg') center / cover no-repeat;
+  }
+
+  .hero:has(.case-tab[data-case="3"].is-active) .hero__media {
+    background: url('../assets/onboarding_mobile.png') center / cover no-repeat;
+  }
+
+  .hero:has(.case-tab[data-case="1"].is-active) .hero__photo,
+  .hero:has(.case-tab[data-case="1"].is-active) .hero__video,
+  .hero:has(.case-tab[data-case="2"].is-active) .hero__photo,
+  .hero:has(.case-tab[data-case="2"].is-active) .hero__video,
+  .hero:has(.case-tab[data-case="3"].is-active) .hero__photo,
+  .hero:has(.case-tab[data-case="3"].is-active) .hero__screen,
+  .hero:has(.case-tab[data-case="3"].is-active) .hero__screen-video {
+    display: none;
+  }
+
+  .hero__mobile-screen-window {
+    display: none;
+    position: absolute;
+    overflow: hidden;
+    background: #e4e4e0;
+  }
+
+  .hero:has(.case-tab[data-case="1"].is-active) .hero__mobile-screen-window,
+  .hero:has(.case-tab[data-case="2"].is-active) .hero__mobile-screen-window,
+  .hero:has(.case-tab[data-case="3"].is-active) .hero__mobile-screen-window {
+    display: block;
+  }
+
+  .hero__mobile-screen-video {
+    position: absolute;
+    pointer-events: none;
+    /* Chrome's default object-fit for a bare <video> is `contain`, not
+       `fill` - without this, the browser letterboxes the video's native
+       frame inside the width/height positionMobileScreenOverlay() sets in
+       js/main.js (which already do the stretch-to-crop math themselves),
+       leaving a gap on whichever axis the native and target aspect ratios
+       disagree on (most visible on case 2 - right edge). */
+    object-fit: fill;
+  }
+
+  .hero__ghost-title {
+    display: block;
+    margin: -0.5em 0 0;
+    padding: 0 var(--spacing-24);
+    font-family: var(--font-serif);
+    font-size: clamp(40px, 16vw, 72px);
+    font-weight: var(--font-weight-medium);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.92);
+    white-space: nowrap;
+    overflow: hidden;
+    pointer-events: none;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Hover-scrub controls don't apply on touch. */
   .hero-video__hitbox { display: none; }
 
   .case-card {
     position: static;
+    z-index: 3;
     pointer-events: auto;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-18);
-    padding: 0 var(--spacing-24) var(--spacing-24);
+    gap: var(--spacing-12);
+    padding: var(--spacing-12) var(--spacing-24) var(--spacing-8);
   }
 
   .case-nav {
     position: static;
     height: auto;
-    align-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     gap: var(--spacing-8);
   }
 
   .case-nav::before { display: none; }
-  .case-nav__label { display: none; }
+  /* Base rule renders this as a rotated vertical sidebar label
+     (position:absolute; left:calc(--rail-label-gap - --spacing-48);
+     writing-mode:vertical-rl) for desktop's side rail — reset all of
+     that here so it sits as a normal horizontal line above the tabs,
+     same size/color as .intro__role. */
+  .case-nav__label {
+    position: static;
+    left: auto;
+    top: auto;
+    bottom: auto;
+    width: auto;
+    writing-mode: horizontal-tb;
+    transform: none;
+    display: block;
+    align-items: normal;
+    justify-content: normal;
+    font-size: var(--text-xs);
+    color: var(--color-grey);
+  }
   .case-nav__list { flex-direction: row; height: auto; gap: var(--spacing-8); }
-  .case-tab { width: 44px; font-size: 18px; }
+  .case-tab { width: 44px; font-size: 18px; border-color: var(--color-grey); color: var(--color-grey); }
 
   .case-card__bottom { position: static; max-width: none; }
-  .case-card__title { font-size: clamp(32px, 12vw, 64px); }
-  .case-card__desc { max-width: none; }
+  /* No cushion/shadow here - this is the plain-card-on-off-white fallback
+     layout (dark text on light background already), and position:static
+     above means ::before would no longer be contained to this box anyway. */
+  .case-card__bottom::before { content: none; }
+  .case-card__title { font-size: clamp(32px, 12vw, 64px); color: var(--color-walnut-shadow); text-shadow: none; }
+  .case-card__desc { max-width: none; color: var(--color-grey); text-shadow: none; }
+
+  /* Configurator (case 1) / Portfolio Overview (case 2) / Onboarding
+     (case 3) mobile: matches the desktop concept instead of the shared
+     mobile layout above (small card + text below on off-white). The mockup
+     photo fills the whole viewport edge-to-edge and case-nav / case-card
+     overlay it directly in white, same as desktop - no off-white section,
+     no ghost-title (that element exists only to bridge a card-then-
+     white-section layout none of these cases use anymore). */
+  .hero:has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) {
+    display: block;
+    min-height: 100vh;
+    padding: 0;
+    background: none;
+  }
+
+  .hero:has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .hero__media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    margin: 0;
+  }
+
+  .hero:has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .hero__ghost-title {
+    display: none;
+  }
+
+  .hero:has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .case-card {
+    position: absolute;
+    inset: 0;
+    display: block;
+    padding: 0;
+    pointer-events: none;
+  }
+
+  .hero:has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .case-nav {
+    position: absolute;
+    left: var(--spacing-24);
+    top: 104px;
+  }
+
+  .hero:has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .case-nav__label {
+    color: var(--text-tertiary);
+  }
+
+  .hero:has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .case-tab:not(.is-active) {
+    border-color: var(--text-tertiary);
+    color: var(--text-tertiary);
+  }
+
+  .hero:has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .case-card__bottom {
+    position: absolute;
+    left: var(--spacing-24);
+    right: var(--spacing-24);
+    bottom: var(--spacing-24);
+  }
+
+  /* Re-declared, not inherited from the base rule: the mobile-default
+     fallback block above sets `content: none` at the same specificity and
+     comes later in the cascade than the base rule, so without this the
+     cushion would stay switched off here too. */
+  .hero:has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .case-card__bottom::before {
+    content: '';
+  }
+
+  .hero:has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .case-card__title {
+    color: var(--text-primary);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .hero:has(.case-tab[data-case="1"].is-active, .case-tab[data-case="2"].is-active, .case-tab[data-case="3"].is-active) .case-card__desc {
+    color: var(--text-primary);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  }
 
   .about {
     padding: var(--spacing-24);
@@ -3032,13 +3364,19 @@ body.about-open .about-meta {
     height: 50vh;
     margin: var(--spacing-24) 0;
   }
-  .about-meta { position: static; margin-top: var(--spacing-24); }
+  .about-meta { position: static; margin-top: var(--spacing-48); }
 
   .case-detail {
     --case-pad-l: var(--spacing-24);
     --case-pad-r: var(--spacing-24);
-    padding: var(--spacing-48) var(--case-pad-r) 0 var(--case-pad-l);
+    padding: var(--spacing-62) var(--case-pad-r) 0 var(--case-pad-l);
+    /* Stacked mobile layout (no pin-and-cover) — same full-bleed rule as
+       .case-detail__footer, sitting between the landing hero and Overview. */
+    border-top: var(--line-hairline) solid var(--color-image-stroke);
   }
+  /* Same inter-section rhythm as desktop's 220px, trimmed for the shorter
+     mobile viewport so consecutive sections don't read as disconnected. */
+  .case-detail__inner { gap: 150px; }
   .case-detail__row { grid-template-columns: 1fr; column-gap: var(--spacing-18); row-gap: var(--spacing-18); }
   .case-detail__principle,
   .case-detail__decisions,
@@ -3113,16 +3451,46 @@ body.about-open .about-meta {
   #case-detail-1 .case-detail__research-lead { max-width: none; }
 
   .case-detail__footer {
-    grid-template-columns: 1fr;
-    justify-items: start;
+    /* Pulls the footer up against the 150px .case-detail__inner gap above,
+       which is sized for rhythm between content sections, not for the
+       Reflection-to-footer transition. */
+    margin-top: -80px;
     padding-top: var(--spacing-48);
     padding-bottom: var(--spacing-48);
+    column-gap: 18px;
   }
-  .case-detail__footer-next { align-items: flex-start; justify-self: start; text-align: left; }
+  .case-detail__footer .about-meta { gap: 18px; }
+  .case-detail__footer-next-title { font-size: clamp(14px, 4.2vw, 19px); }
 }
 
 @media (max-width: 560px) {
   .intro__name { font-size: 19px; }
   .intro__role { font-size: 11px; }
   .case-detail__footer-next-title { font-size: 19px; }
+}
+
+/* Past ~1800px every fluid clamp on the hero (--text-xl chief among them)
+   has hit its own ceiling and stops growing, wasting the extra room on a
+   large/4K display. Raise the ceiling for everything except .intro__name /
+   .intro__role, which keep their existing cap on purpose. .case-tab shares
+   --text-xl with .intro__name, so its size is overridden directly here
+   rather than through the token — bumping the token would grow the header
+   too.
+   .case-card__title is deliberately NOT raised here. Its font-size grows
+   against a fixed-vh bottom offset (.case-card__bottom's `bottom: 5.45vh`)
+   while the hero photo behind it is object-fit: cover — on a wide-but-short
+   viewport (a 21:9 ultrawide monitor, e.g. 2560x1080) `cover` crops enough
+   of the photo's height that the laptop-mockup screen content sits close
+   to the bottom edge already; pushing the title past its existing
+   clamp(40px, 6.5vw, 145px) ceiling there measurably closes that gap until
+   the title's own ascenders overlap the mockup image above it (confirmed
+   visually via the QA agent at 2560x1100 — worse on Case 2's two-line
+   title). Fixing that properly needs the mockup's screen-rect positioning
+   to account for vertical crop, which is a separate change from this
+   font-scaling pass. */
+@media (min-width: 1800px) {
+  .side-tab { font-size: clamp(19px, 1.05vw, 26px); }
+  .case-nav__label { font-size: clamp(14px, 0.8vw, 18px); }
+  .case-tab { width: clamp(50px, 3vw, 66px); font-size: clamp(28px, 1.55vw, 38px); }
+  .case-card__desc { font-size: clamp(21px, 1.3vw, 28px); max-width: 36vw; }
 }

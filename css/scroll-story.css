@@ -279,15 +279,19 @@ body.about-open .story__progress {
 }
 
 /* "Back to top" indicator — takes over .story__progress-hint's exact spot
-   (same bottom:4px/left:10px anchor) once the landing hero is fully covered
-   by the case study (hero-covered), rather than hiding hint fade like the
-   first scroll tick does. Reads as a replacement for the hint, not a
-   separate element: the label sits where "Scroll down to case study" sat,
-   with just the caret added above it. */
+   (same bottom:4px anchor, same --rail-label-gap offset) once the landing
+   hero is fully covered by the case study (hero-covered), rather than
+   hiding hint fade like the first scroll tick does. Reads as a replacement
+   for the hint, not a separate element: the label sits where "Scroll down
+   to case study" sat, with just the caret added above it. */
 .story__progress-top {
   position: absolute;
   bottom: 4px;
-  left: 10px;
+  /* .story__progress sits at right: var(--spacing-48), so subtracting
+     that back out lands this label's own right edge at exactly
+     --rail-label-gap from the viewport edge — mirrors .case-nav__label's
+     calc() in styles.css on the left rail. */
+  right: calc(var(--rail-label-gap) - var(--spacing-48));
   display: block;
   background: none;
   border: none;
@@ -400,7 +404,9 @@ body.about-open .story__progress {
 .story__progress-hint {
   position: absolute;
   bottom: 4px;
-  left: 10px;
+  /* Mirrors .case-nav__label's calc() on the left rail — see
+     .story__progress-top above. */
+  right: calc(var(--rail-label-gap) - var(--spacing-48));
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   white-space: nowrap;

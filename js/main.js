@@ -32,21 +32,31 @@ const CASES = {
     photo: 'assets/Gemini_Generated_Image_qtfftwqtfftwqtff.jpeg',
     tags: ['B2B SaaS', 'Climate Tech'],
     title: 'Configurator',
-    desc: 'A tool that helps asset managers explore renovation scenarios, improve energy efficiency, and optimize investment costs.'
+    desc: 'A tool that helps asset managers explore renovation scenarios, improve energy efficiency, and optimize investment costs.',
+    // Below the 980px breakpoint (see heroFocal()), anchors the mobile
+    // cover-fit crop and its matching .hero__screen/.hero__screen-video
+    // overlay. Plain center for all three cases below — left as a
+    // per-case field rather than hardcoded, in case a specific case's
+    // mockup crops better off-center (e.g. its screen content sits
+    // noticeably left/right of the source photo/video's horizontal
+    // middle, the axis actually being cropped on mobile).
+    mobileFocus: { fx: 0.5, fy: 0.5 }
   },
   2: {
     video: 'assets/portfolio-desktop-composite.mp4',
     photo: 'assets/portfolio-laptop-mockup.png',
     tags: ['B2B SaaS', 'Climate Tech'],
     title: 'Portfolio Overview',
-    desc: 'Shifting from individual property views to portfolio-level intelligence, giving asset managers a clearer view of performance and where to act first.'
+    desc: 'Shifting from individual property views to portfolio-level intelligence, giving asset managers a clearer view of performance and where to act first.',
+    mobileFocus: { fx: 0.5, fy: 0.5 }
   },
   3: {
     photo: 'assets/photo_5829314581652770763_y.jpg',
     screenVideo: SCREEN_VIDEO_ONBOARDING,
     tags: ['B2B SaaS', 'Climate Tech'],
     title: 'Onboarding',
-    desc: 'Guiding users from signup to first value through a simplified, flexible property creation flow that supports a self-serve experience.'
+    desc: 'Guiding users from signup to first value through a simplified, flexible property creation flow that supports a self-serve experience.',
+    mobileFocus: { fx: 0.5, fy: 0.5 }
   }
 };
 
@@ -56,6 +66,29 @@ const CASES = {
 // used for cases with a screen overlay, where the screen content is the thing
 // that needs to be legible.
 const LAPTOP_ZOOM = 1.1;
+
+function laptopZoom() {
+  return LAPTOP_ZOOM;
+}
+
+// Below 980px, .hero__photo/.hero__video's contain-fit anchor is the
+// active case's mobileFocus (see CASES above and the @media
+// (max-width: 980px) block in css/styles.css). computeScreenRect() takes
+// the same focal point so .hero__screen/.hero__screen-video stay aligned
+// to wherever that anchoring leaves the image.
+function heroFocal() {
+  if (!window.matchMedia('(max-width: 980px)').matches) return { fx: 0.5, fy: 0.5 };
+  const data = CASES[activeCaseId];
+  return (data && data.mobileFocus) || { fx: 0.5, fy: 0.5 };
+}
+
+// Both mobile and desktop crop the hero photo/video to fill their box
+// (object-fit: cover), so the same crop-in zoom applies on both.
+function applyPhotoZoom(data) {
+  const photoEl = document.getElementById('hero-photo');
+  const zoom = data.zoom || ((data.screenshot || data.screenVideo) ? laptopZoom() : null);
+  photoEl.style.transform = zoom ? `scale(${zoom})` : '';
+}
 
 // Case switches dissolve rather than cut. Text fades out/in on its own
 // short timer. The hero video uses two stacked <video> elements so the
@@ -67,6 +100,24 @@ const VIDEO_CROSSFADE_MS = 500;
 
 let renderCaseToken = 0;
 let frontVideoIsA = true;
+// Mirrors the .case-tab.is-active default set in index.html, so the hero's
+// initial (pre-any-click) focus point below matches case 1 rather than
+// falling back to the centered default. Kept in sync by renderCase().
+let activeCaseId = (document.querySelector('.case-tab.is-active') || {}).dataset
+  ? document.querySelector('.case-tab.is-active').dataset.case
+  : '1';
+
+// Anchors the mobile cover-fit crop (--hero-focus-x/-y, read by
+// .hero__photo/.hero__video in css/styles.css) on the given case's
+// mobileFocus, defaulting to centered. Applied eagerly below for the
+// page's initial case (renderCase() isn't called until a tab switch) and
+// again from renderCase() itself on every subsequent switch.
+function applyHeroFocus(data) {
+  const hero = document.querySelector('.hero');
+  const focus = (data && data.mobileFocus) || { fx: 0.5, fy: 0.5 };
+  hero.style.setProperty('--hero-focus-x', (focus.fx * 100) + '%');
+  hero.style.setProperty('--hero-focus-y', (focus.fy * 100) + '%');
+}
 
 function getHeroVideos() {
   const a = document.getElementById('hero-video-a');
@@ -124,9 +175,13 @@ function renderCase(id) {
   const data = CASES[id];
   if (!data) return;
 
+  activeCaseId = String(id);
+  applyHeroFocus(data);
+
   const token = ++renderCaseToken;
   const titleEl = document.getElementById('case-title');
   const descEl = document.getElementById('case-desc');
+  const ghostTitleEl = document.getElementById('hero-ghost-title');
   const photoEl = document.getElementById('hero-photo');
 
   titleEl.classList.add('is-switching');
@@ -136,11 +191,12 @@ function renderCase(id) {
     if (token !== renderCaseToken) return; // a newer case switch took over
     titleEl.textContent = data.title;
     descEl.textContent = data.desc;
+    ghostTitleEl.textContent = data.title;
     titleEl.classList.remove('is-switching');
     descEl.classList.remove('is-switching');
   }, TEXT_FADE_MS);
 
-  photoEl.style.transform = data.zoom ? `scale(${data.zoom})` : ((data.screenshot || data.screenVideo) ? `scale(${LAPTOP_ZOOM})` : '');
+  applyPhotoZoom(data);
 
   // Whichever layer (video or photo) is leaving never starts fading out
   // until the incoming one is actually ready to show — hiding it
@@ -199,11 +255,24 @@ function layoutScreen(screenshot) {
   screenEl.classList.add('is-visible');
 }
 
+// #hero-media wraps the photo/video/screen/screen-video layers together
+// (see index.html). On desktop it's position:static, so its absolutely
+// positioned children (.hero__screen etc.) skip past it and attach to
+// .hero as before — unaffected. Below 980px it becomes position:relative
+// (see the @media block), so those same children anchor to #hero-media's
+// own box instead: the box .hero__photo/.hero__video actually fill there,
+// which is padded in from .hero's full width and much shorter than
+// .hero's total height (which also includes the case-card content below
+// it). Measuring against #hero-media directly means no origin offset is
+// needed — left/top land in the right coordinate space already.
 function positionScreen() {
   if (!activeScreenshot) return;
   const screenEl = document.getElementById('hero-screen');
   const hero = document.querySelector('.hero');
-  const rect = LaptopMockup.computeScreenRect(hero, activeScreenshot, LAPTOP_ZOOM);
+  const mediaEl = document.getElementById('hero-media');
+  const mobile = window.matchMedia('(max-width: 980px)').matches;
+  const measureEl = mobile ? mediaEl : hero;
+  const rect = LaptopMockup.computeScreenRect(measureEl, activeScreenshot, laptopZoom(), heroFocal());
 
   screenEl.style.left = `${rect.left}px`;
   screenEl.style.top = `${rect.top}px`;
@@ -263,16 +332,154 @@ function positionScreenVideo() {
   if (!activeScreenVideo) return;
   const videoEl = document.getElementById('hero-screen-video');
   const hero = document.querySelector('.hero');
+  const photoEl = document.getElementById('hero-photo');
   const { imageWidth, imageHeight, quad } = activeScreenVideo;
   const frameConfig = { imageWidth, imageHeight, screen: { left: 0, top: 0, right: imageWidth, bottom: imageHeight }, quad };
-  const rect = LaptopMockup.computeScreenRect(hero, frameConfig, LAPTOP_ZOOM);
+  const mobile = window.matchMedia('(max-width: 980px)').matches;
+  const measureEl = mobile ? photoEl : hero;
+  const originLeft = mobile ? photoEl.offsetLeft : 0;
+  const originTop = mobile ? photoEl.offsetTop : 0;
+  const rect = LaptopMockup.computeScreenRect(measureEl, frameConfig, laptopZoom(), heroFocal());
   const clipPath = LaptopMockup.quadClipPath(frameConfig);
 
-  videoEl.style.left = `${rect.left}px`;
-  videoEl.style.top = `${rect.top}px`;
+  videoEl.style.left = `${rect.left + originLeft}px`;
+  videoEl.style.top = `${rect.top + originTop}px`;
   videoEl.style.width = `${rect.width}px`;
   videoEl.style.height = `${rect.height}px`;
   videoEl.style.clipPath = clipPath;
+}
+
+// Configurator (case 1) / Portfolio Overview (case 2) mobile hero: each
+// config's `bg` mockup photo supplies its own monitor/laptop+desk scene with
+// a blank screen; #hero-mobile-screen-window/-video overlay just the
+// app-content portion of the SAME composite video used by hero-video-a/b
+// (CASES[id].video for cases 1/2, SCREEN_VIDEO_ONBOARDING.src for case 3),
+// cropped to its own screen area (`videoScreen` - keep in sync with
+// SCREEN_RECTS[id].screen in hero-video-overlay.js) and resized/positioned
+// to land inside the photo's screen area instead. Axis-aligned only (no
+// quad/perspective warp): unlike desktop's frame-registered photo+video
+// pairings, this mobile photo isn't shot from the same camera/scene as the
+// source video, so this is a best-fit crop rather than a pixel-exact
+// composite.
+// How much of the mobile viewport's width the mockup's screen area should
+// span - 1 would be edge-to-edge (no backdrop visible at the sides); less
+// than 1 zooms out slightly, leaving the mockup's own backdrop as a margin
+// on both sides. Tune this one number to adjust the crop for both cases.
+const MOBILE_SCREEN_WIDTH_FRACTION = 0.82;
+
+const MOBILE_HERO_OVERLAY = {
+  1: {
+    videoSrc: 'assets/configurator-desktop-composite.mp4',
+    bgImage: 'assets/configurator_mobile.jpeg',
+    // Photographed at a slight tilt (top-right/bottom-left corners aren't
+    // level with their opposite corner), so no axis-aligned rect can sit
+    // corner-to-corner without either a visible white sliver or a hair of
+    // overlap onto the bezel. `screen` is the bounding box of the measured
+    // quad (used to size/position the window rect, cover-fit style); `quad`
+    // is the actual 4 corners ([TL, BL, BR, TR]), nudged ~2% outward from
+    // the measured white/bezel boundary (same reasoning as
+    // SCREEN_VIDEO_ONBOARDING's quad above: an overlap onto the dark bezel
+    // is imperceptible, a gap onto white isn't), clip-path'd onto the
+    // window in positionMobileScreenOverlay() so the video reaches every
+    // corner instead of leaving a sliver at the bbox rectangle's edges.
+    bg: {
+      imageWidth: 768, imageHeight: 1376,
+      screen: { left: 156, top: 603, right: 643, bottom: 901 },
+      quad: [[156, 603], [161, 901], [643, 886], [635, 623]]
+    },
+    videoScreen: { imageWidth: 2764, imageHeight: 1504, screen: { left: 584, top: 138, right: 2292, bottom: 1164 } }
+  },
+  2: {
+    videoSrc: 'assets/portfolio-desktop-composite.mp4',
+    bgImage: 'assets/portofolio_mobile.jpeg',
+    bg: { imageWidth: 768, imageHeight: 1376, screen: { left: 194, top: 572, right: 573, bottom: 824 } },
+    videoScreen: { imageWidth: 3390, imageHeight: 1856, screen: { left: 936, top: 382, right: 2454, bottom: 1224 } }
+  },
+  3: {
+    videoSrc: 'assets/onboarding-desktop-composite.mp4',
+    bgImage: 'assets/onboarding_mobile.png',
+    // Laptop screen photographed at a tilt (right edge sits higher than
+    // left) - same corner-to-corner treatment as case 1's quad above:
+    // `screen` is the measured quad's bounding box, `quad` the actual 4
+    // corners nudged ~2% outward, clip-path'd onto the window so the video
+    // reaches every corner instead of leaving a sliver at the bbox edges.
+    bg: {
+      imageWidth: 940, imageHeight: 1672,
+      screen: { left: 178, top: 744, right: 616, bottom: 1019 },
+      quad: [[178, 758], [196, 1019], [616, 990], [598, 744]]
+    },
+    videoScreen: { imageWidth: 2400, imageHeight: 1260, screen: { left: 576, top: 212, right: 1608, bottom: 838 } }
+  }
+};
+
+function positionMobileScreenOverlay() {
+  const windowEl = document.getElementById('hero-mobile-screen-window');
+  const videoEl = document.getElementById('hero-mobile-screen-video');
+  if (!windowEl || !videoEl) return;
+  const config = MOBILE_HERO_OVERLAY[activeCaseId];
+  if (!config || !window.matchMedia('(max-width: 980px)').matches) return;
+
+  const sourceEl = videoEl.querySelector('source');
+  if (sourceEl.getAttribute('src') !== config.videoSrc) {
+    sourceEl.setAttribute('src', config.videoSrc);
+    videoEl.load();
+    videoEl.play().catch(() => {});
+  }
+
+  const mediaEl = document.getElementById('hero-media');
+  const mediaW = mediaEl.offsetWidth;
+  const mediaH = mediaEl.offsetHeight;
+  if (!mediaW || !mediaH) return;
+
+  // Zoomed in past plain cover-fit: scale is set so the photo's own screen
+  // area spans MOBILE_SCREEN_WIDTH_FRACTION of the viewport width, centered
+  // (leaving backdrop visible on both sides), rather than cover's smaller
+  // (height-driven) scale or a full edge-to-edge fit.
+  const bg = config.bg;
+  const screenNativeW = bg.screen.right - bg.screen.left;
+  const bgScale = (mediaW * MOBILE_SCREEN_WIDTH_FRACTION) / screenNativeW;
+  const bgOffsetX = (mediaW - screenNativeW * bgScale) / 2 - bg.screen.left * bgScale;
+  const renderedH = bg.imageHeight * bgScale;
+  // Centering on the screen's own vertical midpoint can push the (now
+  // smaller, zoomed-out) image far enough that one edge no longer reaches
+  // mediaEl's bounds, leaving a gap where the page's own background shows
+  // through - clamp back into the range that always fully covers mediaH.
+  const desiredOffsetY = mediaH / 2 - ((bg.screen.top + bg.screen.bottom) / 2) * bgScale;
+  const bgOffsetY = Math.min(0, Math.max(mediaH - renderedH, desiredOffsetY));
+
+  mediaEl.style.backgroundImage = `url('${config.bgImage}')`;
+  mediaEl.style.backgroundRepeat = 'no-repeat';
+  mediaEl.style.backgroundSize = `${bg.imageWidth * bgScale}px ${bg.imageHeight * bgScale}px`;
+  mediaEl.style.backgroundPosition = `${bgOffsetX}px ${bgOffsetY}px`;
+
+  const winLeft = bgOffsetX + bg.screen.left * bgScale;
+  const winTop = bgOffsetY + bg.screen.top * bgScale;
+  const winWidth = (bg.screen.right - bg.screen.left) * bgScale;
+  const winHeight = (bg.screen.bottom - bg.screen.top) * bgScale;
+
+  windowEl.style.left = `${winLeft}px`;
+  windowEl.style.top = `${winTop}px`;
+  windowEl.style.width = `${winWidth}px`;
+  windowEl.style.height = `${winHeight}px`;
+  // Cuts the window's bbox rect down to the true (tilted) screen quad when
+  // one is given, so the video reaches every corner with no white sliver
+  // left showing past it. Percentage-based, so it's valid regardless of
+  // winWidth/winHeight - see quadClipPath()'s own comment.
+  windowEl.style.clipPath = bg.quad ? LaptopMockup.quadClipPath(bg) : '';
+
+  // Same cover-fit math again, this time fitting just the video's own
+  // screen-content crop (not its full baked scene) into that window.
+  const vs = config.videoScreen;
+  const screenW = vs.screen.right - vs.screen.left;
+  const screenH = vs.screen.bottom - vs.screen.top;
+  const vScale = Math.max(winWidth / screenW, winHeight / screenH);
+  const cropExtraX = (winWidth - screenW * vScale) / 2;
+  const cropExtraY = (winHeight - screenH * vScale) / 2;
+
+  videoEl.style.width = `${vs.imageWidth * vScale}px`;
+  videoEl.style.height = `${vs.imageHeight * vScale}px`;
+  videoEl.style.left = `${-vs.screen.left * vScale + cropExtraX}px`;
+  videoEl.style.top = `${-vs.screen.top * vScale + cropExtraY}px`;
 }
 
 function initScreenResize() {
@@ -281,10 +488,15 @@ function initScreenResize() {
     if (raf) return;
     raf = requestAnimationFrame(() => {
       raf = null;
+      const data = CASES[activeCaseId];
+      if (data) applyPhotoZoom(data);
       positionScreen();
       positionScreenVideo();
+      positionMobileScreenOverlay();
     });
   });
+  document.addEventListener('onboarding:case-change', positionMobileScreenOverlay);
+  positionMobileScreenOverlay();
 }
 
 function initCaseNav() {
@@ -307,12 +519,26 @@ function initAbout() {
   const aboutSection = document.getElementById('about');
   const aboutTab = document.getElementById('about-tab');
 
+  let currentView = 'work';
+
   function setView(view) {
+    currentView = view;
     const isAbout = view === 'about';
     document.body.classList.toggle('about-open', isAbout);
     aboutSection.setAttribute('aria-hidden', String(!isAbout));
     const label = aboutTab.querySelector('.side-tab__text');
-    if (label) label.textContent = isAbout ? 'Close' : 'About';
+    // On mobile the word is replaced by .side-tab__arrow's existing
+    // underline-to-cross animation rather than a second, literal "x"
+    // glyph — an aria-label stands in for the accessible name the
+    // visible word used to provide. On desktop there's room for the
+    // word itself, so it stays as "Close" instead of disappearing.
+    const isMobile = window.matchMedia('(max-width: 980px)').matches;
+    if (label) label.textContent = isAbout ? (isMobile ? '' : 'Close') : 'About';
+    if (isAbout && isMobile) {
+      aboutTab.setAttribute('aria-label', 'Close');
+    } else {
+      aboutTab.removeAttribute('aria-label');
+    }
     aboutTab.setAttribute('aria-selected', String(isAbout));
   }
 
@@ -326,6 +552,10 @@ function initAbout() {
       setView('work');
     }
   });
+
+  // Keep the label's mobile/desktop wording in sync if the viewport
+  // crosses the 980px breakpoint while the panel is already open.
+  window.addEventListener('resize', () => setView(currentView));
 }
 
 // #case-detail has one section per case (data-case="N"); only the one
